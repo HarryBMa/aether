@@ -3,25 +3,37 @@ import { useState, useRef, useEffect, useCallback } from "react";
 const C = {
   bg: "oklch(13% 0.008 55)", s1: "oklch(16% 0.006 55)", s2: "oklch(19% 0.006 55)", s3: "oklch(23% 0.005 55)",
   fg: "oklch(90% 0.01 55)", fg2: "oklch(68% 0.01 55)", fg3: "oklch(48% 0.012 55)", border: "oklch(22% 0.008 55)",
+  ink: "oklch(8% 0.005 55)", ink2: "oklch(10% 0.005 55)",
   sage: "oklch(65% 0.1 155)", sageBg: "oklch(20% 0.03 155)",
   blue: "oklch(65% 0.12 245)", blueBg: "oklch(20% 0.03 245)",
   amber: "oklch(72% 0.14 75)", amberBg: "oklch(22% 0.04 75)",
   rose: "oklch(65% 0.12 15)", roseBg: "oklch(20% 0.03 15)",
   mauve: "oklch(65% 0.1 310)", mauveBg: "oklch(20% 0.03 310)",
+  shadowSm: "0 1px 3px color-mix(in oklch, oklch(0% 0 0) 12%, transparent)",
 };
 const font = "'Instrument Sans', system-ui, sans-serif";
 const mono = "'IBM Plex Mono', monospace";
+const T = {
+  eyebrow: { fontSize: "0.72rem", lineHeight: 1.4, letterSpacing: "0.08em" },
+  meta: { fontSize: "0.8rem", lineHeight: 1.45 },
+  body: { fontSize: "1rem", lineHeight: 1.65 },
+  bodySm: { fontSize: "0.92rem", lineHeight: 1.6 },
+  label: { fontSize: "0.88rem", lineHeight: 1.45 },
+  titleSm: { fontSize: "1rem", lineHeight: 1.35 },
+  title: { fontSize: "1.15rem", lineHeight: 1.25 },
+  section: { fontSize: "1.3rem", lineHeight: 1.2 },
+};
 const patient = { name: "Erik Lindström", id: "EL-2026-0847", age: 58 };
 
 const Tag = ({ text, color, bg }) => (
-  <span style={{ fontSize: 10, fontWeight: 500, fontFamily: mono, color, background: bg, padding: "2px 8px", borderRadius: 4 }}>{text}</span>
+  <span style={{ ...T.meta, fontWeight: 500, fontFamily: mono, color, background: bg, padding: "2px 8px", borderRadius: 4 }}>{text}</span>
 );
 const Btn = ({ children, primary, onClick, small, style: s }) => (
-  <button onClick={onClick} style={{ padding: small ? "5px 11px" : "8px 16px", border: primary ? "none" : `1px solid ${C.border}`, background: primary ? C.sage : "transparent", color: primary ? C.bg : C.fg2, borderRadius: 6, fontSize: small ? 11 : 12, fontWeight: 500, cursor: "pointer", fontFamily: mono, ...s }}>{children}</button>
+  <button onClick={onClick} style={{ padding: small ? "5px 11px" : "8px 16px", border: primary ? "none" : `1px solid ${C.border}`, background: primary ? C.sage : "transparent", color: primary ? C.bg : C.fg2, borderRadius: 6, fontSize: small ? "0.84rem" : "0.92rem", lineHeight: 1.2, fontWeight: 500, cursor: "pointer", fontFamily: mono, ...s }}>{children}</button>
 );
-const Badge = ({ n, color }) => n > 0 ? <span style={{ fontSize: 10, fontWeight: 600, fontFamily: mono, background: color, color: C.bg, borderRadius: 10, padding: "1px 6px" }}>{n}</span> : null;
+const Badge = ({ n, color }) => n > 0 ? <span style={{ ...T.meta, fontWeight: 600, fontFamily: mono, background: color, color: C.bg, borderRadius: 10, padding: "1px 6px" }}>{n}</span> : null;
 const Label = ({ children }) => (
-  <div style={{ fontSize: 9, fontFamily: mono, color: C.fg3, letterSpacing: 1, textTransform: "uppercase", marginBottom: 4 }}>{children}</div>
+  <div style={{ ...T.eyebrow, fontFamily: mono, color: C.fg3, textTransform: "uppercase", marginBottom: 6 }}>{children}</div>
 );
 
 const rooms = [
@@ -89,17 +101,17 @@ const mdtData = {
 function CaseSpace({ nav }) {
   const [room, setRoom] = useState(0);
   return (
-    <div style={{ display: "flex", height: "100%", minHeight: "calc(100vh - 48px)" }}>
-      <div style={{ width: 220, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
+    <div className="case-space" style={{ display: "flex", height: "100%", minHeight: "calc(100vh - 48px)" }}>
+      <div className="case-space-sidebar" style={{ width: 220, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
         <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: C.fg }}>{patient.name}</div>
-          <div style={{ fontSize: 10, fontFamily: mono, color: C.fg3, marginTop: 2 }}>{patient.id} · {patient.age}å · <Tag text="H&H Lambå" color={C.sage} bg={C.sageBg} /></div>
+          <div style={{ ...T.titleSm, fontWeight: 600, color: C.fg }}>{patient.name}</div>
+          <div style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginTop: 4 }}>{patient.id} · {patient.age}å · <Tag text="H&H Lambå" color={C.sage} bg={C.sageBg} /></div>
         </div>
         <div style={{ flex: 1, padding: "6px 0", overflowY: "auto" }}>
           {rooms.map((r, i) => (
             <div key={i} onClick={() => setRoom(i)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 14px", cursor: "pointer", background: room === i ? C.s2 : "transparent", borderLeft: room === i ? `2px solid ${r.color}` : "2px solid transparent" }}>
               <span style={{ fontSize: 12 }}>{r.icon}</span>
-              <span style={{ fontSize: 11, color: room === i ? C.fg : C.fg2, flex: 1, fontWeight: room === i ? 500 : 400 }}>{r.name}</span>
+              <span style={{ ...T.label, color: room === i ? C.fg : C.fg2, flex: 1, fontWeight: room === i ? 500 : 400 }}>{r.name}</span>
               <Badge n={r.unread} color={r.color} />
             </div>
           ))}
@@ -108,18 +120,18 @@ function CaseSpace({ nav }) {
           <Btn onClick={() => nav("consult")} small style={{ width: "100%", textAlign: "left" }}>+ Konsultation</Btn>
         </div>
       </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <div style={{ padding: "9px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ fontSize: 12, fontWeight: 500, color: C.fg }}>{rooms[room].icon} {rooms[room].name} <span style={{ fontSize: 10, fontFamily: mono, color: C.fg3 }}>· 4 deltagare</span></span>
+          <span style={{ ...T.label, fontWeight: 500, color: C.fg }}>{rooms[room].icon} {rooms[room].name} <span style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>· 4 deltagare</span></span>
         </div>
         <div style={{ flex: 1, padding: 16, overflowY: "auto" }}>
           {messages.map((m, i) => (
             <div key={i} style={{ marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: C.fg }}>{m.from}</span>
-                <span style={{ fontSize: 9, fontFamily: mono, color: C.fg3 }}>{m.role} · {m.time}</span>
+                <span style={{ ...T.label, fontWeight: 600, color: C.fg }}>{m.from}</span>
+                <span style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>{m.role} · {m.time}</span>
               </div>
-              <p style={{ fontSize: 12, lineHeight: 1.65, color: C.fg2, margin: 0, maxWidth: "60ch" }}>{m.text}</p>
+              <p style={{ ...T.body, color: C.fg2, margin: 0, maxWidth: "60ch" }}>{m.text}</p>
             </div>
           ))}
           <div style={{ background: C.s2, border: `1px solid ${C.border}`, borderRadius: 6, padding: 12, maxWidth: 340, marginTop: 4 }}>
@@ -127,16 +139,16 @@ function CaseSpace({ nav }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 14px" }}>
               {[["Hb", "138 g/L", "130–175"], ["K+", "4,1 mmol/L", "3,5–5,0"], ["Albumin", "34 g/L ↓", "36–45"], ["eGFR", ">90", ">60"]].map(([l, v, r], i) => (
                 <div key={i}>
-                  <div style={{ fontSize: 9, color: C.fg3, fontFamily: mono }}>{l}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: v.includes("↓") ? C.amber : C.fg }}>{v}</div>
-                  <div style={{ fontSize: 9, color: C.fg3, fontFamily: mono }}>{r}</div>
+                  <div style={{ ...T.meta, color: C.fg3, fontFamily: mono }}>{l}</div>
+                  <div style={{ ...T.label, fontWeight: 600, color: v.includes("↓") ? C.amber : C.fg }}>{v}</div>
+                  <div style={{ ...T.meta, color: C.fg3, fontFamily: mono }}>{r}</div>
                 </div>
               ))}
             </div>
           </div>
         </div>
         <div style={{ padding: "10px 16px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 8 }}>
-          <input placeholder={`Meddelande #${rooms[room].name.toLowerCase()}...`} style={{ flex: 1, padding: "8px 12px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: 12, fontFamily: font, outline: "none" }} />
+          <input aria-label={`Meddelande till ${rooms[room].name}`} placeholder={`Meddelande #${rooms[room].name.toLowerCase()}...`} style={{ flex: 1, minWidth: 0, padding: "8px 12px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: "1rem", lineHeight: 1.45, fontFamily: font, outline: "none" }} />
           <Btn primary>Skicka</Btn>
         </div>
       </div>
@@ -149,8 +161,8 @@ function Timeline() {
   return (
     <div style={{ padding: "24px 20px", maxWidth: 600, margin: "0 auto" }}>
       <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 18, fontWeight: 600, color: C.fg }}>{patient.name}</div>
-        <div style={{ fontSize: 11, fontFamily: mono, color: C.fg3 }}>Vårdtidslinje · Jan → Sep 2026</div>
+        <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>{patient.name}</div>
+        <div style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>Vårdtidslinje · Jan → Sep 2026</div>
       </div>
       <div style={{ paddingLeft: 20, position: "relative" }}>
         <div style={{ position: "absolute", left: 6, top: 3, bottom: 3, width: 2, background: C.border }} />
@@ -158,8 +170,8 @@ function Timeline() {
           <div key={i} style={{ marginBottom: 14, position: "relative" }}>
             <div style={{ position: "absolute", left: -17, top: 3, width: 10, height: 10, borderRadius: "50%", background: e.current ? C.sage : e.done ? C.s3 : C.s1, border: `2px solid ${e.current ? C.sage : e.done ? C.fg3 : C.border}`, boxShadow: e.current ? `0 0 0 3px ${C.sage}33` : "none" }} />
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 10, fontFamily: mono, color: C.fg3, minWidth: 40 }}>{e.date}</span>
-              <span style={{ fontSize: 12, fontWeight: e.current ? 600 : 400, color: e.done ? C.fg2 : e.current ? C.fg : C.fg3 }}>{e.label}</span>
+              <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, minWidth: 48 }}>{e.date}</span>
+              <span style={{ ...T.bodySm, fontWeight: e.current ? 600 : 400, color: e.done ? C.fg2 : e.current ? C.fg : C.fg3 }}>{e.label}</span>
               <Tag text={e.dept} color={C.sage} bg={C.sageBg} />
             </div>
           </div>
@@ -183,30 +195,30 @@ function ConsultRequest() {
   ];
   return (
     <div style={{ padding: "24px 20px", maxWidth: 500, margin: "0 auto" }}>
-      <div style={{ fontSize: 18, fontWeight: 600, color: C.fg, marginBottom: 20 }}>Begär specialistyttrande</div>
+      <div style={{ ...T.section, fontWeight: 600, color: C.fg, marginBottom: 20 }}>Begär specialistyttrande</div>
       {step === 0 && specialties.map((s, i) => (
-        <div key={i} onClick={() => setStep(1)} style={{ padding: "10px 12px", marginBottom: 4, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, cursor: "pointer", fontSize: 12, color: C.fg2 }}>{s}</div>
+        <div key={i} onClick={() => setStep(1)} style={{ padding: "10px 12px", marginBottom: 4, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, cursor: "pointer", ...T.bodySm, color: C.fg2 }}>{s}</div>
       ))}
       {step === 1 && (
         <div>
           <Tag text="Plastikkirurgi / Mikrovaskulär" color={C.blue} bg={C.blueBg} />
           <div style={{ background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, padding: 12, margin: "14px 0" }}>
-            <Label>Automatisk kontext</Label>
-            <div style={{ fontSize: 11, color: C.fg2, lineHeight: 1.7 }}>
+            <Label>Patientöversikt</Label>
+            <div style={{ ...T.bodySm, color: C.fg2, lineHeight: 1.7 }}>
               {patient.name} · {patient.age}å<br />
               SCC mandibel T3N1M0 · Planerat: segmentell mandibulektomi<br />
               CTA 2026-02-10 · CT hals 2026-02-03
             </div>
           </div>
-          <textarea placeholder="Klinisk fråga..." style={{ width: "100%", minHeight: 80, padding: 10, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: 12, fontFamily: font, resize: "vertical", outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
+          <textarea aria-label="Klinisk fråga för specialistyttrande" placeholder="Vad behöver teamet hjälp att bedöma?" style={{ width: "100%", minHeight: 80, padding: 10, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: "1rem", lineHeight: 1.55, fontFamily: font, resize: "vertical", outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
           <Btn primary onClick={() => setStep(2)}>Skicka förfrågan</Btn>
         </div>
       )}
       {step === 2 && (
         <div style={{ textAlign: "center", padding: "48px 0" }}>
           <div style={{ fontSize: 32, marginBottom: 12 }}>✓</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: C.fg }}>Skickat till Plastikkirurgi</div>
-          <div style={{ fontSize: 11, fontFamily: mono, color: C.fg3, marginTop: 4 }}>Länkad till tidslinje · Svar spåras</div>
+          <div style={{ ...T.title, fontWeight: 600, color: C.fg }}>Skickat till Plastikkirurgi</div>
+          <div style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginTop: 6 }}>Länkad till tidslinje · Svar spåras</div>
         </div>
       )}
     </div>
@@ -218,11 +230,11 @@ function CalendarView() {
   return (
     <div style={{ padding: "24px 20px", maxWidth: 540, margin: "0 auto" }}>
       <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 18, fontWeight: 600, color: C.fg }}>{patient.name}</div>
-        <div style={{ fontSize: 11, fontFamily: mono, color: C.fg3 }}>Vecka 13 · mars 2026</div>
+        <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>{patient.name}</div>
+        <div style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>Vecka 13 · mars 2026</div>
       </div>
       <div style={{ background: C.amberBg, border: `1px solid ${C.amber}33`, borderRadius: 6, padding: 12, marginBottom: 20 }}>
-        <div style={{ fontSize: 12, color: C.fg2, lineHeight: 1.5 }}>
+        <div style={{ ...T.bodySm, color: C.fg2, lineHeight: 1.55 }}>
           <span style={{ color: C.amber, fontWeight: 600 }}>Fre: 3 platser. </span>
           Protetik kan flytta till Karolinska samma dag som plastikkirurgi — båda tillgängliga 15:30.
         </div>
@@ -230,20 +242,20 @@ function CalendarView() {
       </div>
       {calendarAppts.map((d, i) => (
         <div key={i} style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 11, fontWeight: 600, color: C.fg, marginBottom: 6, fontFamily: mono }}>{d.day}</div>
+          <div style={{ ...T.label, fontWeight: 600, color: C.fg, marginBottom: 6, fontFamily: mono }}>{d.day}</div>
           {d.items.map((a, j) => (
             <div key={j} style={{ display: "flex", gap: 12, padding: "8px 12px", marginBottom: 3, background: C.s1, borderRadius: 5, borderLeft: `3px solid ${a.c}` }}>
-              <span style={{ fontSize: 11, fontFamily: mono, color: C.fg3, minWidth: 36 }}>{a.t}</span>
+              <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, minWidth: 42 }}>{a.t}</span>
               <div>
-                <div style={{ fontSize: 12, color: C.fg }}>{a.n}</div>
-                <div style={{ fontSize: 10, color: C.fg3 }}>{a.l}</div>
+                <div style={{ ...T.bodySm, color: C.fg }}>{a.n}</div>
+                <div style={{ ...T.meta, color: C.fg3 }}>{a.l}</div>
               </div>
             </div>
           ))}
         </div>
       ))}
       <div style={{ background: C.s1, padding: 10, borderRadius: 6, marginTop: 4, borderLeft: `3px solid ${C.fg3}` }}>
-        <div style={{ fontSize: 12, color: C.fg2, fontStyle: "italic" }}>"Kan inte resa måndag — behöver skjuts. Alla tisdag på Karolinska om möjligt."</div>
+        <div style={{ ...T.bodySm, color: C.fg2, fontStyle: "italic" }}>"Kan inte resa måndag — behöver skjuts. Alla tisdag på Karolinska om möjligt."</div>
       </div>
     </div>
   );
@@ -255,39 +267,39 @@ function MDTSummary() {
   return (
     <div style={{ padding: "24px 20px", maxWidth: 560, margin: "0 auto" }}>
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 18, fontWeight: 600, color: C.fg }}>Slutlig kirurgisk plangranskning</div>
-        <div style={{ fontSize: 11, fontFamily: mono, color: C.fg3 }}>2026-03-19 · 47 min · 8 deltagare</div>
+        <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>Slutlig kirurgisk plangranskning</div>
+        <div style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>2026-03-19 · 47 min · 8 deltagare</div>
       </div>
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: C.fg, marginBottom: 10 }}>Beslut</div>
+        <div style={{ ...T.titleSm, fontWeight: 600, color: C.fg, marginBottom: 10 }}>Beslut</div>
         {mdtData.decisions.map((d, i) => (
-          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8, fontSize: 12, color: C.fg2, lineHeight: 1.55 }}>
+          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 8, ...T.bodySm, color: C.fg2, lineHeight: 1.55 }}>
             <span style={{ color: C.sage, flexShrink: 0 }}>✓</span>
             <span>{d}</span>
           </div>
         ))}
       </div>
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: C.fg, marginBottom: 10 }}>Åtgärder</div>
+        <div style={{ ...T.titleSm, fontWeight: 600, color: C.fg, marginBottom: 10 }}>Åtgärder</div>
         {mdtData.actions.map((a, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "7px 10px", background: C.s1, borderRadius: 5, marginBottom: 3, fontSize: 11, gap: 8 }}>
-            <span style={{ color: C.fg2 }}>{a.t}</span>
-            <span style={{ fontFamily: mono, color: C.fg3, whiteSpace: "nowrap" }}>{a.o} · {a.d}</span>
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "7px 10px", background: C.s1, borderRadius: 5, marginBottom: 3, ...T.meta, gap: 8 }}>
+            <span style={{ ...T.bodySm, color: C.fg2 }}>{a.t}</span>
+            <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, whiteSpace: "nowrap" }}>{a.o} · {a.d}</span>
           </div>
         ))}
       </div>
       <div style={{ background: C.amberBg, border: `1px solid ${C.amber}33`, borderRadius: 6, padding: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <span style={{ fontSize: 11, fontWeight: 500, color: C.amber }}>Patientsammanfattning</span>
+          <span style={{ ...T.label, fontWeight: 500, color: C.amber }}>Patientsammanfattning</span>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
             <Tag text="AI-genererad" color={C.mauve} bg={C.mauveBg} />
-            {approved && <span style={{ fontSize: 9, fontFamily: mono, color: C.sage }}>✓ godkänd</span>}
+            {approved && <span style={{ ...T.meta, fontFamily: mono, color: C.sage }}>✓ godkänd</span>}
           </div>
         </div>
-        <p style={{ fontSize: 12, color: C.fg2, lineHeight: 1.65, fontStyle: "italic", margin: "0 0 12px" }}>{mdtData.patientSv}</p>
+        <p style={{ ...T.body, color: C.fg2, fontStyle: "italic", margin: "0 0 12px", maxWidth: "62ch" }}>{mdtData.patientSv}</p>
         {!approved
           ? <Btn primary onClick={() => setApproved(true)}>Godkänn &amp; publicera</Btn>
-          : <div style={{ fontSize: 10, fontFamily: mono, color: C.sage }}>✓ Godkänd av Dr. Bergström · Publicerad i portalen</div>}
+          : <div style={{ ...T.meta, fontFamily: mono, color: C.sage }}>✓ Godkänd av Dr. Bergström · Publicerad i portalen</div>}
       </div>
     </div>
   );
@@ -298,42 +310,42 @@ function PatientPortal() {
   const lb = "oklch(96% 0.008 55)";
   const lt = "oklch(20% 0.01 55)";
   const lt2 = "oklch(45% 0.01 55)";
-  const card = { background: "oklch(99% 0.006 55)", borderRadius: 10, padding: 14, marginBottom: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.06)" };
+  const card = { background: "oklch(99% 0.006 55)", borderRadius: 10, padding: 14, marginBottom: 10, boxShadow: C.shadowSm };
   return (
     <div style={{ background: lb, minHeight: "100%", color: lt }}>
       <div style={{ maxWidth: 440, margin: "0 auto", padding: "20px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 600 }}>Hej Erik 👋</div>
-            <div style={{ fontSize: 11, color: lt2, fontFamily: mono }}>Din vårdöversikt</div>
+            <div style={{ fontSize: "1.45rem", lineHeight: 1.2, fontWeight: 600 }}>Hej Erik 👋</div>
+            <div style={{ ...T.label, color: lt2 }}>Din vårdöversikt</div>
           </div>
-          <div style={{ fontSize: 9, fontFamily: mono, padding: "3px 8px", background: "oklch(90% 0.03 155)", color: "oklch(35% 0.1 155)", borderRadius: 16 }}>BankID ✓</div>
+          <div style={{ ...T.meta, fontFamily: mono, padding: "3px 8px", background: "oklch(90% 0.03 155)", color: "oklch(35% 0.1 155)", borderRadius: 16 }}>BankID ✓</div>
         </div>
         <div style={card}>
-          <div style={{ fontSize: 9, fontFamily: mono, color: lt2, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Nästa besök</div>
-          <div style={{ fontSize: 14, fontWeight: 600 }}>Strålbehandling (14/33)</div>
-          <div style={{ fontSize: 12, color: lt2 }}>Tis 25 mars kl. 10:00 · Karolinska Solna</div>
-          <div style={{ fontSize: 11, color: lt2, marginTop: 6, padding: "6px 8px", background: lb, borderRadius: 5 }}>💡 Dietistbesök samma dag 14:00</div>
+          <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Närmast i planen</div>
+          <div style={{ fontSize: "1.08rem", lineHeight: 1.3, fontWeight: 600 }}>Strålbehandling (14/33)</div>
+          <div style={{ ...T.body, color: lt2 }}>Tis 25 mars kl. 10:00 · Karolinska Solna</div>
+          <div style={{ ...T.bodySm, color: lt2, marginTop: 6, padding: "6px 8px", background: lb, borderRadius: 5 }}>💡 Dietistbesök samma dag 14:00</div>
         </div>
         <div style={card}>
-          <div style={{ fontSize: 9, fontFamily: mono, color: lt2, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Vecka 13 — 5 besök</div>
+          <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Vecka 13 — 5 besök</div>
           {["Mån: Sårvård 08:30 — Södersjukhuset", "Tis: Strålning + Dietist — Karolinska", "Ons: Sårvård + Logoped — 2 platser", "Tor: Strålning — Karolinska", "Fre: Sårvård + Plastik + Tand — 3 platser"].map((d, i, arr) => (
-            <div key={i} style={{ fontSize: 11, color: lt2, padding: "4px 0", borderBottom: i < arr.length - 1 ? "1px solid oklch(92% 0.005 55)" : "none" }}>{d}</div>
+            <div key={i} style={{ ...T.bodySm, color: lt2, padding: "4px 0", borderBottom: i < arr.length - 1 ? "1px solid oklch(92% 0.005 55)" : "none" }}>{d}</div>
           ))}
-          <button style={{ width: "100%", marginTop: 8, padding: 7, background: lb, border: "none", borderRadius: 5, fontSize: 11, color: lt2, cursor: "pointer", fontFamily: font }}>Meddela schemaproblem →</button>
+          <button style={{ width: "100%", marginTop: 8, padding: 7, background: lb, border: "none", borderRadius: 5, ...T.bodySm, color: lt2, cursor: "pointer", fontFamily: font }}>Be om hjälp med tider →</button>
         </div>
         <div style={card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 9, fontFamily: mono, color: lt2, letterSpacing: 1, textTransform: "uppercase" }}>Senaste teamuppdatering</div>
-            <div style={{ fontSize: 8, fontFamily: mono, color: "oklch(35% 0.1 155)", background: "oklch(90% 0.03 155)", padding: "1px 6px", borderRadius: 3 }}>Godkänd av Dr. Bergström</div>
+            <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase" }}>Senaste teamuppdatering</div>
+            <div style={{ ...T.meta, fontFamily: mono, color: "oklch(35% 0.1 155)", background: "oklch(90% 0.03 155)", padding: "1px 6px", borderRadius: 3 }}>Godkänd av Dr. Bergström</div>
           </div>
-          <p style={{ fontSize: 12, lineHeight: 1.65, margin: "0 0 10px", color: "oklch(30% 0.01 55)" }}>{mdtData.patientSv}</p>
-          <button style={{ padding: "6px 12px", background: lb, border: "none", borderRadius: 5, fontSize: 11, color: lt2, cursor: "pointer", fontFamily: font }}>Har du frågor? →</button>
+          <p style={{ ...T.body, margin: "0 0 10px", color: "oklch(30% 0.01 55)", maxWidth: "34ch" }}>{mdtData.patientSv}</p>
+          <button style={{ padding: "6px 12px", background: lb, border: "none", borderRadius: 5, ...T.bodySm, color: lt2, cursor: "pointer", fontFamily: font }}>Ställ en fråga →</button>
         </div>
         <div style={card}>
-          <div style={{ fontSize: 9, fontFamily: mono, color: lt2, letterSpacing: 1, textTransform: "uppercase", marginBottom: 8 }}>Kontakta ditt team</div>
-          {["📅 Schemafråga", "🩹 Rapportera symtom", "❓ Fråga om behandling", "🚗 Praktiskt problem"].map((m, i) => (
-            <div key={i} style={{ padding: "8px 10px", marginBottom: 3, background: lb, borderRadius: 5, cursor: "pointer", fontSize: 12, display: "flex", justifyContent: "space-between" }}>
+          <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Hur kan vi hjälpa dig?</div>
+          {["📅 Jag behöver ändra en tid", "🩹 Jag vill rapportera symtom", "❓ Jag har en fråga om behandlingen", "🚗 Jag behöver praktisk hjälp"].map((m, i) => (
+            <div key={i} style={{ padding: "8px 10px", marginBottom: 3, background: lb, borderRadius: 5, cursor: "pointer", ...T.bodySm, display: "flex", justifyContent: "space-between" }}>
               <span>{m}</span><span style={{ color: lt2 }}>→</span>
             </div>
           ))}
@@ -357,11 +369,11 @@ function Conference() {
     { name: "S. Nilsson", role: "Vårdkoordinator", speaking: false },
   ];
   return (
-    <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: "oklch(8% 0.005 55)" }}>
+    <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: C.ink }}>
       <div style={{ padding: "10px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}` }}>
         <div>
-          <span style={{ fontSize: 13, fontWeight: 600, color: C.fg }}>MDT-konferens</span>
-          <span style={{ fontSize: 10, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>{patient.name}</span>
+          <span style={{ ...T.label, fontWeight: 600, color: C.fg }}>MDT-konferens</span>
+          <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>{patient.name}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {recording && (
@@ -369,17 +381,17 @@ function Conference() {
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.rose, animation: "pulse 1.5s infinite" }} />REC
             </span>
           )}
-          <span style={{ fontSize: 10, fontFamily: mono, color: C.fg3 }}>23:41</span>
+          <span style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>23:41</span>
         </div>
       </div>
-      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4, padding: "8px 16px" }}>
+      <div className="conference-grid" style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4, padding: "8px 16px" }}>
         {participants.map((p, i) => (
           <div key={i} style={{ background: C.s1, borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: p.speaking ? `2px solid ${C.sage}` : `1px solid ${C.border}`, position: "relative", minHeight: 110 }}>
             <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.s3, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: C.fg2, marginBottom: 6 }}>
               {p.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
             </div>
-            <div style={{ fontSize: 11, fontWeight: 500, color: C.fg, textAlign: "center" }}>{p.name}</div>
-            <div style={{ fontSize: 9, fontFamily: mono, color: C.fg3 }}>{p.role}</div>
+            <div style={{ ...T.bodySm, fontWeight: 500, color: C.fg, textAlign: "center" }}>{p.name}</div>
+            <div style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>{p.role}</div>
             {p.speaking && (
               <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 2 }}>
                 {[3, 5, 2, 4, 3].map((h, j) => (
@@ -392,11 +404,11 @@ function Conference() {
       </div>
       {sharing && (
         <div style={{ margin: "0 16px 8px", background: C.s1, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: 16, textAlign: "center" }}>
-          <div style={{ fontSize: 11, fontFamily: mono, color: C.blue, marginBottom: 4 }}>Skärmdelning aktiv</div>
-          <div style={{ fontSize: 12, color: C.fg2 }}>Dr. Bergström delar: OHIF DICOM-visare — CT Hals-serie</div>
+          <div style={{ ...T.label, fontFamily: mono, color: C.blue, marginBottom: 4 }}>Skärmdelning aktiv</div>
+          <div style={{ ...T.bodySm, color: C.fg2 }}>Dr. Bergström delar: OHIF DICOM-visare — CT Hals-serie</div>
         </div>
       )}
-      <div style={{ padding: "10px 16px", background: C.s1, borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
+      <div className="conference-controls" style={{ padding: "10px 16px", background: C.s1, borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
         {[
           { label: muted ? "Avtysta" : "Tysta", icon: muted ? "🔇" : "🎤", action: () => setMuted(!muted), active: !muted },
           { label: "Video", icon: "📹", active: true },
@@ -404,7 +416,7 @@ function Conference() {
           { label: recording ? "Stoppa" : "Spela in", icon: "⏺️", action: () => setRecording(!recording), active: recording, color: C.rose },
           { label: "Avsluta", icon: "📵", end: true },
         ].map((b, i) => (
-          <button key={i} onClick={b.action} style={{ padding: "7px 13px", border: "none", borderRadius: 6, cursor: "pointer", background: b.end ? C.rose : b.active && b.color ? `${b.color}33` : b.active ? C.s3 : C.s2, color: b.end ? "#fff" : b.color || C.fg2, fontSize: 11, fontFamily: mono, display: "flex", alignItems: "center", gap: 4 }}>
+          <button key={i} onClick={b.action} style={{ minWidth: 44, minHeight: 44, padding: "7px 13px", border: "none", borderRadius: 6, cursor: "pointer", background: b.end ? C.rose : b.active && b.color ? `${b.color}33` : b.active ? C.s3 : C.s2, color: b.end ? C.bg : b.color || C.fg2, fontSize: 11, fontFamily: mono, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, transition: "transform 180ms ease, background-color 180ms ease" }}>
             <span>{b.icon}</span> {b.label}
           </button>
         ))}
@@ -428,30 +440,30 @@ function DICOMViewer() {
   ];
   const presets = [{ n: "Ben", w: 2000, l: 500 }, { n: "Mjukvävnad", w: 350, l: 40 }, { n: "Lunga", w: 1500, l: -600 }, { n: "Hjärna", w: 80, l: 40 }];
   return (
-    <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: "#0a0a09" }}>
+    <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: C.ink }}>
       <div style={{ padding: "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}` }}>
         <div>
-          <span style={{ fontSize: 12, fontWeight: 600, color: C.fg }}>OHIF DICOM-visare</span>
-          <span style={{ fontSize: 10, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>CT Hals C+ · 2026-02-03 · 186 snitt</span>
+          <span style={{ ...T.label, fontWeight: 600, color: C.fg }}>OHIF DICOM-visare</span>
+          <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>CT Hals C+ · 2026-02-03 · 186 snitt</span>
         </div>
         <div style={{ display: "flex", gap: 5 }}>
           {presets.map(p => (
-            <button key={p.n} onClick={() => setWl({ w: p.w, l: p.l })} style={{ padding: "3px 8px", border: `1px solid ${C.border}`, borderRadius: 4, background: wl.w === p.w ? C.s3 : "transparent", color: wl.w === p.w ? C.fg : C.fg3, fontSize: 9, fontFamily: mono, cursor: "pointer" }}>{p.n}</button>
+            <button key={p.n} onClick={() => setWl({ w: p.w, l: p.l })} style={{ padding: "3px 8px", border: `1px solid ${C.border}`, borderRadius: 4, background: wl.w === p.w ? C.s3 : "transparent", color: wl.w === p.w ? C.fg : C.fg3, ...T.meta, fontFamily: mono, cursor: "pointer" }}>{p.n}</button>
           ))}
         </div>
       </div>
-      <div style={{ flex: 1, display: "flex" }}>
-        <div style={{ width: 52, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 2 }}>
+      <div className="dicom-layout" style={{ flex: 1, display: "flex", minWidth: 0 }}>
+        <div className="dicom-toolbar" style={{ width: 52, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 2 }}>
           {tools.map(t => (
-            <button key={t.id} onClick={() => setTool(t.id)} style={{ width: 40, height: 40, border: "none", borderRadius: 6, cursor: "pointer", background: tool === t.id ? C.s3 : "transparent", color: tool === t.id ? C.fg : C.fg3, fontSize: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1 }}>
+            <button key={t.id} aria-label={t.label} onClick={() => setTool(t.id)} style={{ width: 44, height: 44, border: "none", borderRadius: 6, cursor: "pointer", background: tool === t.id ? C.s3 : "transparent", color: tool === t.id ? C.fg : C.fg3, fontSize: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1 }}>
               <span>{t.icon}</span>
-              <span style={{ fontSize: 7, fontFamily: mono }}>{t.label}</span>
+              <span style={{ fontSize: "0.62rem", lineHeight: 1.1, fontFamily: mono }}>{t.label}</span>
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <button style={{ width: 40, height: 40, border: "none", borderRadius: 6, background: "transparent", color: C.sage, fontSize: 16, cursor: "pointer" }} title="Länka till diskussion">💬</button>
+          <button aria-label="Länka bildserien till diskussion" style={{ width: 44, height: 44, border: "none", borderRadius: 6, background: "transparent", color: C.sage, fontSize: 16, cursor: "pointer" }} title="Länka till diskussion">💬</button>
         </div>
-        <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ flex: 1, minWidth: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ width: "90%", maxWidth: 500, aspectRatio: "1", background: "radial-gradient(ellipse at 50% 45%, oklch(25% 0.01 55), oklch(8% 0.005 55) 70%)", borderRadius: 4, position: "relative", overflow: "hidden" }}>
             <div style={{ position: "absolute", top: "30%", left: "35%", width: "30%", height: "25%", borderRadius: "50%", border: "1px solid oklch(35% 0.01 55)" }} />
             <div style={{ position: "absolute", top: "35%", left: "42%", width: "16%", height: "15%", borderRadius: "50%", border: "1px solid oklch(40% 0.01 55)", background: "oklch(20% 0.01 55)" }} />
@@ -463,22 +475,22 @@ function DICOMViewer() {
               <text x="51%" y="37%" fill={C.amber} fontSize="11" fontFamily={mono} textAnchor="middle">32,4 mm</text>
             </svg>
             <div style={{ position: "absolute", top: "28%", right: "25%", background: C.roseBg, border: `1px solid ${C.rose}66`, borderRadius: 4, padding: "3px 6px" }}>
-              <div style={{ fontSize: 8, fontFamily: mono, color: C.rose }}>Dr. Bergström</div>
-              <div style={{ fontSize: 9, color: C.fg2 }}>Tumörmarginal</div>
+              <div style={{ ...T.meta, fontFamily: mono, color: C.rose }}>Dr. Bergström</div>
+              <div style={{ ...T.meta, color: C.fg2 }}>Tumörmarginal</div>
             </div>
           </div>
-          <div style={{ position: "absolute", top: 8, left: 8, fontSize: 9, fontFamily: mono, color: C.fg3, lineHeight: 1.6 }}>
+          <div style={{ position: "absolute", top: 8, left: 8, ...T.meta, fontFamily: mono, color: C.fg3, lineHeight: 1.6 }}>
             {patient.name}<br />CT Hals C+<br />Snitt 94/186<br />Ax 2,0mm
           </div>
-          <div style={{ position: "absolute", top: 8, right: 8, fontSize: 9, fontFamily: mono, color: C.fg3, textAlign: "right" }}>
+          <div style={{ position: "absolute", top: 8, right: 8, ...T.meta, fontFamily: mono, color: C.fg3, textAlign: "right" }}>
             F: {wl.w} N: {wl.l}<br />Zoom: 100%
           </div>
           <div style={{ position: "absolute", bottom: 8, left: 8, right: 8 }}>
-            <input type="range" min={1} max={186} defaultValue={94} style={{ width: "100%", accentColor: C.sage }} />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, fontFamily: mono, color: C.fg3 }}><span>1</span><span>Snitt 94</span><span>186</span></div>
+            <input aria-label="Välj snitt i DICOM-serien" type="range" min={1} max={186} defaultValue={94} style={{ width: "100%", accentColor: C.sage }} />
+            <div style={{ display: "flex", justifyContent: "space-between", ...T.meta, fontFamily: mono, color: C.fg3 }}><span>1</span><span>Snitt 94</span><span>186</span></div>
           </div>
         </div>
-        <div style={{ width: 190, background: C.s1, borderLeft: `1px solid ${C.border}`, padding: 10, overflowY: "auto" }}>
+        <div className="dicom-sidebar" style={{ width: 190, background: C.s1, borderLeft: `1px solid ${C.border}`, padding: 10, overflowY: "auto" }}>
           <Label>Anteckningar</Label>
           {[
             { author: "Dr. Bergström", text: "Tumörmarginal — 32,4mm på bredaste", slice: 94, color: C.rose },
@@ -486,9 +498,9 @@ function DICOMViewer() {
             { author: "Dr. Eriksson", text: "Tandrötter i resektionszon — bekräfta extraktionsplan", slice: 78, color: C.amber },
           ].map((a, i) => (
             <div key={i} style={{ padding: 8, marginBottom: 6, background: C.s2, borderRadius: 5, borderLeft: `2px solid ${a.color}`, cursor: "pointer" }}>
-              <div style={{ fontSize: 10, fontWeight: 500, color: C.fg }}>{a.author}</div>
-              <div style={{ fontSize: 10, color: C.fg2, marginTop: 2, lineHeight: 1.4 }}>{a.text}</div>
-              <div style={{ fontSize: 8, fontFamily: mono, color: C.fg3, marginTop: 3 }}>Snitt {a.slice}</div>
+              <div style={{ ...T.meta, fontWeight: 500, color: C.fg }}>{a.author}</div>
+              <div style={{ ...T.meta, color: C.fg2, marginTop: 2, lineHeight: 1.45 }}>{a.text}</div>
+              <div style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginTop: 3 }}>Snitt {a.slice}</div>
             </div>
           ))}
           <Btn small style={{ width: "100%", marginTop: 8 }}>+ Anteckning</Btn>
@@ -506,6 +518,11 @@ function Whiteboard() {
   const [penSize] = useState(2);
   const [activeTool, setActiveTool] = useState("pen");
   const lastPos = useRef(null);
+  const collaborators = [
+    { name: "Dr. Bergström", note: "Markerar resektionsmarginal", color: C.sage, x: 34, y: 42 },
+    { name: "Dr. Johansson", note: "Justerar osteotomilinjer", color: C.amber, x: 58, y: 66 },
+    { name: "Dr. Eriksson", note: "Bekräftar tandrötter", color: C.blue, x: 71, y: 34 },
+  ];
 
   const getPos = (e) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -588,37 +605,75 @@ function Whiteboard() {
   ];
 
   return (
-    <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: "#0a0a09" }}>
+    <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: C.ink }}>
       <div style={{ padding: "8px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div>
-          <span style={{ fontSize: 12, fontWeight: 600, color: C.fg }}>Samarbetstavla</span>
-          <span style={{ fontSize: 10, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>Kirurgplanering · {patient.name}</span>
+          <span style={{ ...T.label, fontWeight: 600, color: C.fg }}>Samarbetstavla</span>
+          <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>Kirurgplanering · {patient.name}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            {collaborators.map((collaborator) => (
+              <div key={collaborator.name} className="presence-chip" style={{ border: `1px solid ${collaborator.color}3d`, background: `color-mix(in oklch, ${collaborator.color} 10%, ${C.s1})`, color: C.fg2, borderRadius: 999, padding: "4px 10px", display: "flex", alignItems: "center", gap: 6, ...T.meta, fontFamily: mono }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: collaborator.color, boxShadow: `0 0 12px ${collaborator.color}` }} />
+                {collaborator.note}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {["Dr. B", "Dr. J", "Dr. E"].map((u, i) => (
-            <div key={i} style={{ width: 22, height: 22, borderRadius: "50%", background: [C.sage, C.blue, C.amber][i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: C.bg, fontWeight: 700, marginLeft: i > 0 ? -6 : 0, border: "2px solid #0a0a09" }}>{u.slice(-1)}</div>
+            <div key={i} style={{ width: 22, height: 22, borderRadius: "50%", background: [C.sage, C.blue, C.amber][i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: C.bg, fontWeight: 700, marginLeft: i > 0 ? -6 : 0, border: `2px solid ${C.ink}` }}>{u.slice(-1)}</div>
           ))}
-          <span style={{ fontSize: 9, fontFamily: mono, color: C.fg3 }}>3 aktiva</span>
+          <span style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>3 aktiva</span>
+          </div>
         </div>
       </div>
-      <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-        <div style={{ width: 48, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 2 }}>
+      <div className="whiteboard-layout" style={{ display: "flex", flex: 1, overflow: "hidden", minWidth: 0 }}>
+        <div className="whiteboard-toolbar" style={{ width: 48, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 2 }}>
           {drawTools.map(t => (
-            <button key={t.id} onClick={() => setActiveTool(t.id)} style={{ width: 36, height: 36, border: "none", borderRadius: 6, cursor: "pointer", background: activeTool === t.id ? C.s3 : "transparent", color: activeTool === t.id ? C.fg : C.fg3, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>{t.icon}</button>
+            <button key={t.id} className="whiteboard-tool" aria-label={`Välj verktyg ${t.id}`} onClick={() => setActiveTool(t.id)} style={{ width: 44, height: 44, border: "none", borderRadius: 6, cursor: "pointer", background: activeTool === t.id ? C.s3 : "transparent", color: activeTool === t.id ? C.fg : C.fg3, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: activeTool === t.id ? `0 12px 32px color-mix(in oklch, ${penColor} 16%, transparent)` : "none" }}>{t.icon}</button>
           ))}
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingBottom: 6 }}>
             {[C.sage, C.blue, C.amber, C.rose, C.fg].map(c => (
-              <div key={c} onClick={() => setPenColor(c)} style={{ width: 16, height: 16, borderRadius: "50%", background: c, cursor: "pointer", border: penColor === c ? "2px solid #fff" : "2px solid transparent" }} />
+              <div key={c} onClick={() => setPenColor(c)} aria-label="Välj pennfärg" role="button" style={{ width: 22, height: 22, borderRadius: "50%", background: c, cursor: "pointer", border: penColor === c ? `2px solid ${C.fg}` : "2px solid transparent" }} />
             ))}
           </div>
         </div>
-        <canvas
-          ref={canvasRef}
-          onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
-          onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw}
-          style={{ flex: 1, cursor: activeTool === "pen" ? "crosshair" : activeTool === "move" ? "grab" : "default" }}
-        />
+        <div style={{ flex: 1, minWidth: 0, position: "relative", overflow: "hidden" }}>
+          <canvas
+            ref={canvasRef}
+            onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
+            onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw}
+            style={{ position: "relative", zIndex: 1, width: "100%", height: "100%", cursor: activeTool === "pen" ? "crosshair" : activeTool === "move" ? "grab" : "default" }}
+          />
+          <div className="whiteboard-grid" style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none", opacity: 0.72, backgroundImage: `linear-gradient(to right, color-mix(in oklch, ${C.fg3} 22%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklch, ${C.fg3} 22%, transparent) 1px, transparent 1px), radial-gradient(circle at top, color-mix(in oklch, ${penColor} 14%, transparent), transparent 54%)`, backgroundSize: "40px 40px, 40px 40px, 100% 100%" }} />
+          {collaborators.map((collaborator) => (
+            <div
+              key={collaborator.name}
+              className="presence-cursor"
+              style={{
+                position: "absolute",
+                left: `${collaborator.x}%`,
+                top: `${collaborator.y}%`,
+                zIndex: 3,
+                pointerEvents: "none",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: collaborator.color, boxShadow: `0 0 18px ${collaborator.color}` }} />
+                <div style={{ padding: "5px 8px", borderRadius: 999, background: "color-mix(in oklch, oklch(10% 0.005 55) 82%, transparent)", border: `1px solid ${collaborator.color}44`, color: C.fg, ...T.meta, fontFamily: mono, whiteSpace: "nowrap" }}>
+                  {collaborator.name}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div style={{ position: "absolute", right: 14, bottom: 14, zIndex: 3, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 999, background: "color-mix(in oklch, oklch(10% 0.005 55) 82%, transparent)", border: `1px solid ${penColor}44`, boxShadow: `0 18px 48px color-mix(in oklch, ${penColor} 12%, transparent)` }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: penColor, boxShadow: `0 0 12px ${penColor}` }} />
+            <span style={{ ...T.meta, color: C.fg2, fontFamily: mono }}>Live-skiss synkad med konferensen</span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -684,36 +739,77 @@ function ORLayout() {
     harvest: "Plastikteam vid benet. H&H team förbereder mottagarkärl. Flytta mikroskop till benet. Cell saver aktiv.",
     inset: "Båda team vid huvudet. Mikroskop vid anastomosstället. Övervaka lappperfusion. Värmefilt på nederkroppen.",
   };
+  const phaseFocusItems = {
+    resection: ["table", "micro", "anesth", "team1", "monitor", "carm"],
+    harvest: ["team2", "cellsaver", "warm", "inst2", "table"],
+    inset: ["table", "micro", "team1", "team2", "monitor", "nurse"],
+  };
+  const phaseZones = {
+    resection: [
+      { label: "Resektionsfält", color: C.rose, top: "18%", left: "28%", width: "34%", height: "28%" },
+      { label: "Anestesizon", color: C.sage, top: "6%", left: "34%", width: "22%", height: "18%" },
+    ],
+    harvest: [
+      { label: "Lapputtag", color: C.amber, top: "46%", left: "10%", width: "28%", height: "28%" },
+      { label: "Perfusionsstöd", color: C.blue, top: "38%", left: "70%", width: "18%", height: "24%" },
+    ],
+    inset: [
+      { label: "Anastomoszon", color: C.mauve, top: "22%", left: "40%", width: "28%", height: "22%" },
+      { label: "Teamöverlapp", color: C.sage, top: "48%", left: "28%", width: "40%", height: "22%" },
+    ],
+  };
+  const phaseChecklist = {
+    resection: ["Bekräfta resektionsmarginal", "Fri väg till C-båge", "Mikroskop i standby"],
+    harvest: ["Lapputtag sterilt avskärmat", "Cell saver aktiv", "Transportlinje till huvudet fri"],
+    inset: ["Mikroskop centrerat", "Dubbel teamposition", "Perfusionsmonitor synlig för båda"],
+  };
 
   return (
     <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "8px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
         <div>
-          <span style={{ fontSize: 12, fontWeight: 600, color: C.fg }}>OR-layoutplanerare</span>
-          <span style={{ fontSize: 10, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>{patient.name} · OR 4 Karolinska</span>
+          <span style={{ ...T.label, fontWeight: 600, color: C.fg }}>OR-layoutplanerare</span>
+          <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>{patient.name} · OR 4 Karolinska</span>
         </div>
         <div style={{ display: "flex", gap: 4 }}>
           {[{ id: "resection", label: "Fas 1: Resektion" }, { id: "harvest", label: "Fas 2: Lapputtag" }, { id: "inset", label: "Fas 3: Anastomos" }].map(p => (
-            <button key={p.id} onClick={() => setPhase(p.id)} style={{ padding: "4px 10px", border: `1px solid ${phase === p.id ? C.sage + "66" : C.border}`, borderRadius: 5, background: phase === p.id ? C.sageBg : "transparent", color: phase === p.id ? C.sage : C.fg3, fontSize: 10, fontFamily: mono, cursor: "pointer" }}>{p.label}</button>
+            <button key={p.id} onClick={() => setPhase(p.id)} style={{ padding: "4px 10px", border: `1px solid ${phase === p.id ? C.sage + "66" : C.border}`, borderRadius: 5, background: phase === p.id ? C.sageBg : "transparent", color: phase === p.id ? C.sage : C.fg3, ...T.meta, fontFamily: mono, cursor: "pointer" }}>{p.label}</button>
           ))}
         </div>
       </div>
-      <div style={{ flex: 1, display: "flex" }}>
-        <div ref={containerRef} style={{ flex: 1, position: "relative", overflow: "hidden", cursor: dragging ? "grabbing" : "default" }}>
+      <div className="or-layout-shell" style={{ flex: 1, display: "flex", minWidth: 0 }}>
+        <div ref={containerRef} style={{ flex: 1, minWidth: 0, position: "relative", overflow: "hidden", cursor: dragging ? "grabbing" : "default" }}>
           <div style={{ position: "absolute", inset: 20, border: `2px solid ${C.border}`, borderRadius: 8 }}>
-            <div style={{ position: "absolute", top: -10, left: 16, background: C.bg, padding: "0 6px", fontSize: 9, fontFamily: mono, color: C.fg3 }}>OR 4 · 7,2m × 6,4m</div>
+            <div style={{ position: "absolute", top: -10, left: 16, background: C.bg, padding: "0 6px", ...T.meta, fontFamily: mono, color: C.fg3 }}>OR 4 · 7,2m × 6,4m</div>
             <div style={{ position: "absolute", bottom: -2, left: "40%", width: "20%", height: 4, background: C.sage, borderRadius: 2 }} />
             <div style={{ position: "absolute", top: "30%", right: -2, width: 4, height: "15%", background: C.sage, borderRadius: 2 }} />
           </div>
+          {phaseZones[phase].map((zone) => (
+            <div key={zone.label} className="or-zone" style={{ position: "absolute", top: zone.top, left: zone.left, width: zone.width, height: zone.height, borderRadius: 18, background: `color-mix(in oklch, ${zone.color} 10%, transparent)`, border: `1px solid ${zone.color}33`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${zone.color} 24%, transparent), 0 18px 40px color-mix(in oklch, ${zone.color} 12%, transparent)` }}>
+              <div style={{ position: "absolute", top: -12, left: 14, padding: "3px 10px", borderRadius: 999, background: C.bg, border: `1px solid ${zone.color}44`, color: zone.color, ...T.meta, fontFamily: mono }}>{zone.label}</div>
+            </div>
+          ))}
+          <div style={{ position: "absolute", top: 20, right: 24, padding: "6px 10px", borderRadius: 999, background: "color-mix(in oklch, oklch(13% 0.008 55) 86%, transparent)", border: `1px solid ${C.mauve}33`, color: C.fg2, ...T.meta, fontFamily: mono }}>
+            Dra utrustning för att testa flödet live
+          </div>
           {items.map(item => (
-            <div key={item.id} onMouseDown={(e) => handleMouseDown(e, item.id)} onTouchStart={(e) => handleMouseDown(e, item.id)} style={{ position: "absolute", left: item.x, top: item.y, width: item.w, height: item.h, background: `${item.color}18`, border: `1.5px solid ${item.color}55`, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", cursor: "grab", userSelect: "none", touchAction: "none", boxShadow: dragging === item.id ? `0 0 0 2px ${item.color}` : "none", transition: dragging === item.id ? "none" : "box-shadow 0.15s" }}>
-              <span style={{ fontSize: 9, fontFamily: mono, color: item.color, textAlign: "center", padding: 2, lineHeight: 1.2 }}>{item.label}</span>
+            <div key={item.id} className="or-item" onMouseDown={(e) => handleMouseDown(e, item.id)} onTouchStart={(e) => handleMouseDown(e, item.id)} style={{ position: "absolute", left: item.x, top: item.y, width: item.w, height: item.h, background: phaseFocusItems[phase].includes(item.id) ? `color-mix(in oklch, ${item.color} 18%, ${C.s1})` : `${item.color}18`, border: `1.5px solid ${item.color}55`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", cursor: "grab", userSelect: "none", touchAction: "none", boxShadow: dragging === item.id ? `0 0 0 2px ${item.color}, 0 20px 40px color-mix(in oklch, ${item.color} 18%, transparent)` : phaseFocusItems[phase].includes(item.id) ? `0 0 0 1px color-mix(in oklch, ${item.color} 35%, transparent), 0 16px 32px color-mix(in oklch, ${item.color} 12%, transparent)` : "none", transform: phaseFocusItems[phase].includes(item.id) ? "scale(1.03)" : "scale(1)", transition: dragging === item.id ? "none" : "transform 180ms ease, box-shadow 180ms ease, background 180ms ease" }}>
+              <span style={{ ...T.meta, fontFamily: mono, color: item.color, textAlign: "center", padding: 2, lineHeight: 1.25 }}>{item.label}</span>
             </div>
           ))}
         </div>
-        <div style={{ width: 170, background: C.s1, borderLeft: `1px solid ${C.border}`, padding: 12, overflowY: "auto", display: "flex", flexDirection: "column" }}>
+        <div className="or-layout-sidebar" style={{ width: 170, background: C.s1, borderLeft: `1px solid ${C.border}`, padding: 12, overflowY: "auto", display: "flex", flexDirection: "column" }}>
           <Label>Fasanteckningar</Label>
-          <div style={{ fontSize: 11, color: C.fg2, lineHeight: 1.6, marginBottom: 16, flex: 1 }}>{phaseNotes[phase]}</div>
+          <div style={{ ...T.bodySm, color: C.fg2, lineHeight: 1.65, marginBottom: 16, flex: 1 }}>{phaseNotes[phase]}</div>
+          <Label>Live-checklista</Label>
+          <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
+            {phaseChecklist[phase].map((item) => (
+              <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "8px 10px", borderRadius: 8, background: C.s2 }}>
+                <span style={{ width: 8, height: 8, marginTop: 6, borderRadius: "50%", background: C.mauve, boxShadow: `0 0 10px ${C.mauve}` }} />
+                <span style={{ ...T.meta, color: C.fg2 }}>{item}</span>
+              </div>
+            ))}
+          </div>
           <Btn small style={{ width: "100%", marginBottom: 4 }}>Spara layout</Btn>
           <Btn small style={{ width: "100%" }}>Dela med teamet</Btn>
         </div>
@@ -738,29 +834,96 @@ const toolScreens = [
   { id: "or-layout", label: "OR-layout", icon: "🏥" },
 ];
 
+const screenSequence = [...primaryScreens, ...toolScreens];
+const careflowMeta = {
+  space: {
+    phase: "Samordning",
+    cue: "Teamet knyter ihop beslut, bildunderlag och praktiska steg.",
+    accent: C.sage,
+    glow: "radial-gradient(circle at 18% 0%, color-mix(in oklch, oklch(65% 0.1 155) 22%, transparent), transparent 44%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 155) 8%, transparent), transparent 70%)",
+  },
+  timeline: {
+    phase: "Förlopp",
+    cue: "Alla kritiska milstolpar syns i ett enda vårdflöde.",
+    accent: C.blue,
+    glow: "radial-gradient(circle at 50% 0%, color-mix(in oklch, oklch(65% 0.12 245) 18%, transparent), transparent 48%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.12 245) 9%, transparent), transparent 70%)",
+  },
+  consult: {
+    phase: "Bedömning",
+    cue: "Frågor skickas med rätt kliniskt sammanhang från start.",
+    accent: C.amber,
+    glow: "radial-gradient(circle at 72% 0%, color-mix(in oklch, oklch(72% 0.14 75) 20%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(72% 0.14 75) 9%, transparent), transparent 72%)",
+  },
+  calendar: {
+    phase: "Koordinering",
+    cue: "Besök, behandling och stöd hålls ihop utan kollisioner.",
+    accent: C.mauve,
+    glow: "radial-gradient(circle at 18% 0%, color-mix(in oklch, oklch(65% 0.1 310) 18%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 310) 8%, transparent), transparent 72%)",
+  },
+  mdt: {
+    phase: "Beslut",
+    cue: "MDT-beslut förankras med tydlig ansvarsfördelning.",
+    accent: C.sage,
+    glow: "radial-gradient(circle at 82% 0%, color-mix(in oklch, oklch(65% 0.1 155) 18%, transparent), transparent 44%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 155) 8%, transparent), transparent 72%)",
+  },
+  portal: {
+    phase: "Patientkontakt",
+    cue: "Patienten möter samma plan i ett lugnare, tryggare tonläge.",
+    accent: C.rose,
+    glow: "radial-gradient(circle at 22% 0%, color-mix(in oklch, oklch(65% 0.12 15) 20%, transparent), transparent 40%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.12 15) 8%, transparent), transparent 72%)",
+  },
+  conference: {
+    phase: "Live-konferens",
+    cue: "Diskussion, skärmdelning och beslut sker i samma rytm.",
+    accent: C.sage,
+    glow: "radial-gradient(circle at 50% 0%, color-mix(in oklch, oklch(65% 0.1 155) 18%, transparent), transparent 44%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 155) 7%, transparent), transparent 74%)",
+  },
+  viewer: {
+    phase: "Bildgranskning",
+    cue: "Bildserier, mått och kommentarer hålls nära diskussionen.",
+    accent: C.blue,
+    glow: "radial-gradient(circle at 80% 0%, color-mix(in oklch, oklch(65% 0.12 245) 20%, transparent), transparent 46%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.12 245) 8%, transparent), transparent 74%)",
+  },
+  whiteboard: {
+    phase: "Kirurgisk skiss",
+    cue: "Flera specialister kan markera, reagera och orientera sig samtidigt.",
+    accent: C.amber,
+    glow: "radial-gradient(circle at 25% 0%, color-mix(in oklch, oklch(72% 0.14 75) 20%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(72% 0.14 75) 7%, transparent), transparent 74%)",
+  },
+  "or-layout": {
+    phase: "OR-koreografi",
+    cue: "Bemanning, utrustning och fasbyten kan testas visuellt innan start.",
+    accent: C.mauve,
+    glow: "radial-gradient(circle at 78% 0%, color-mix(in oklch, oklch(65% 0.1 310) 18%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 310) 7%, transparent), transparent 74%)",
+  },
+};
+
 export default function App() {
   const [screen, setScreen] = useState("space");
   const [showTools, setShowTools] = useState(false);
   const isToolScreen = toolScreens.some(s => s.id === screen);
+  const activeMeta = careflowMeta[screen];
+  const activeIndex = screenSequence.findIndex((entry) => entry.id === screen);
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font }}>
-      <nav style={{ height: 48, background: C.s1, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative", overflow: "hidden" }}>
+      <div className="app-shell-ambient" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: activeMeta.glow, opacity: 1 }} />
+      <nav className="app-nav" style={{ height: 48, background: "color-mix(in oklch, oklch(16% 0.006 55) 88%, transparent)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflowX: "auto", position: "relative", zIndex: 1, backdropFilter: "blur(16px)" }}>
+        <div style={{ fontSize: "0.98rem", lineHeight: 1.2, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap" }}>
           <span style={{ color: C.sage }}>●</span> CasePlatform
         </div>
         {primaryScreens.map(s => (
-          <button key={s.id} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ padding: "5px 10px", border: "none", borderRadius: 5, cursor: "pointer", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg3, fontSize: 11, fontFamily: font, fontWeight: screen === s.id ? 600 : 400, whiteSpace: "nowrap" }}>
+          <button key={s.id} className={`app-nav-button${screen === s.id ? " is-active" : ""}`} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: screen === s.id ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: screen === s.id ? C.fg : C.fg3, fontSize: "0.9rem", lineHeight: 1.2, fontFamily: font, fontWeight: screen === s.id ? 600 : 400, whiteSpace: "nowrap" }}>
             {s.icon} {s.label}
           </button>
         ))}
         <div style={{ position: "relative", marginLeft: 4 }}>
-          <button onClick={() => setShowTools(v => !v)} style={{ padding: "5px 10px", border: "none", borderRadius: 5, cursor: "pointer", background: isToolScreen || showTools ? C.s3 : "transparent", color: isToolScreen || showTools ? C.fg : C.fg3, fontSize: 11, fontFamily: font, whiteSpace: "nowrap" }}>
+          <button className={`app-nav-button${isToolScreen || showTools ? " is-active" : ""}`} onClick={() => setShowTools(v => !v)} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: isToolScreen || showTools ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: isToolScreen || showTools ? C.fg : C.fg3, fontSize: "0.9rem", lineHeight: 1.2, fontFamily: font, whiteSpace: "nowrap" }}>
             Verktyg ▾
           </button>
           {showTools && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.s2, border: `1px solid ${C.border}`, borderRadius: 6, overflow: "hidden", zIndex: 100, minWidth: 140 }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.s2, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 100, minWidth: 160, boxShadow: `0 20px 48px color-mix(in oklch, ${activeMeta.accent} 12%, transparent)` }}>
               {toolScreens.map(s => (
-                <button key={s.id} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: 11, fontFamily: font, cursor: "pointer" }}>
+                <button key={s.id} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.9rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
                   {s.icon} {s.label}
                 </button>
               ))}
@@ -768,17 +931,173 @@ export default function App() {
           )}
         </div>
       </nav>
+      <div className="careflow-ribbon" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 16, alignItems: "center", padding: "12px 16px 14px", borderBottom: `1px solid color-mix(in oklch, ${activeMeta.accent} 18%, ${C.border})`, background: "color-mix(in oklch, oklch(13% 0.008 55) 88%, transparent)", backdropFilter: "blur(16px)" }}>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ ...T.eyebrow, color: activeMeta.accent, fontFamily: mono, textTransform: "uppercase" }}>Fas · {activeMeta.phase}</span>
+            <span style={{ ...T.bodySm, color: C.fg2 }}>{activeMeta.cue}</span>
+          </div>
+        </div>
+        <div className="careflow-track" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {screenSequence.map((entry, index) => (
+            <div key={entry.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ width: index === activeIndex ? 22 : 8, height: 8, borderRadius: 999, background: index <= activeIndex ? activeMeta.accent : C.border, boxShadow: index === activeIndex ? `0 0 22px ${activeMeta.accent}` : "none", transition: "width 220ms ease, background 220ms ease, box-shadow 220ms ease" }} />
+              {index < screenSequence.length - 1 && <span style={{ width: 12, height: 1, background: index < activeIndex ? activeMeta.accent : C.border, opacity: 0.7 }} />}
+            </div>
+          ))}
+        </div>
+      </div>
+      <style>{`
+        @keyframes careflowReveal {
+          0% { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(10px); }
+          100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        @keyframes careflowDrift {
+          0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+          50% { transform: translate3d(0, -1.2%, 0) scale(1.02); }
+        }
+
+        @keyframes presencePulse {
+          0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.8; }
+          50% { transform: translate3d(0, -4px, 0); opacity: 1; }
+        }
+
+        .app-nav::-webkit-scrollbar { display: none; }
+        .app-shell-ambient {
+          animation: careflowDrift 12s ease-in-out infinite;
+        }
+
+        .app-nav-button {
+          position: relative;
+          transition: transform 180ms ease, background-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .app-nav-button:hover {
+          transform: translateY(-1px);
+        }
+
+        .app-nav-button.is-active {
+          box-shadow: 0 12px 32px color-mix(in oklch, ${activeMeta.accent} 14%, transparent);
+        }
+
+        .careflow-stage {
+          animation: careflowReveal 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
+          position: relative;
+          z-index: 1;
+        }
+
+        .whiteboard-grid {
+          animation: careflowDrift 14s ease-in-out infinite;
+        }
+
+        .presence-cursor,
+        .presence-chip {
+          animation: presencePulse 3.6s ease-in-out infinite;
+        }
+
+        .or-zone {
+          pointer-events: none;
+          animation: presencePulse 5.5s ease-in-out infinite;
+        }
+
+        .or-item,
+        .whiteboard-tool {
+          will-change: transform, box-shadow;
+        }
+
+        .or-item:hover,
+        .whiteboard-tool:hover,
+        .conference-controls button:hover {
+          transform: translateY(-1px);
+        }
+
+        .case-space,
+        .dicom-layout,
+        .whiteboard-layout,
+        .or-layout-shell {
+          container-type: inline-size;
+        }
+
+        @media (max-width: 900px) {
+          .careflow-ribbon {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+
+          .careflow-track {
+            justify-content: flex-start !important;
+          }
+
+          .case-space {
+            flex-direction: column;
+          }
+
+          .case-space-sidebar,
+          .dicom-sidebar,
+          .or-layout-sidebar {
+            width: 100% !important;
+            border-left: none !important;
+            border-right: none !important;
+            border-top: 1px solid ${C.border};
+          }
+
+          .conference-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+
+          .dicom-layout,
+          .or-layout-shell {
+            flex-direction: column;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .presence-chip {
+            display: none !important;
+          }
+
+          .conference-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+
+          .dicom-layout,
+          .whiteboard-layout {
+            flex-direction: column;
+          }
+
+          .dicom-toolbar,
+          .whiteboard-toolbar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid ${C.border};
+            flex-direction: row !important;
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding: 8px;
+          }
+
+          .conference-controls {
+            justify-content: stretch;
+          }
+
+          .conference-controls button {
+            flex: 1 1 calc(50% - 6px);
+          }
+        }
+      `}</style>
       <div style={{ flex: 1, overflowY: "auto" }} onClick={() => showTools && setShowTools(false)}>
-        {screen === "space" && <CaseSpace nav={setScreen} />}
-        {screen === "timeline" && <Timeline />}
-        {screen === "consult" && <ConsultRequest />}
-        {screen === "calendar" && <CalendarView />}
-        {screen === "mdt" && <MDTSummary />}
-        {screen === "conference" && <Conference />}
-        {screen === "viewer" && <DICOMViewer />}
-        {screen === "whiteboard" && <Whiteboard />}
-        {screen === "or-layout" && <ORLayout />}
-        {screen === "portal" && <PatientPortal />}
+        <div key={screen} className="careflow-stage">
+          {screen === "space" && <CaseSpace nav={setScreen} />}
+          {screen === "timeline" && <Timeline />}
+          {screen === "consult" && <ConsultRequest />}
+          {screen === "calendar" && <CalendarView />}
+          {screen === "mdt" && <MDTSummary />}
+          {screen === "conference" && <Conference />}
+          {screen === "viewer" && <DICOMViewer />}
+          {screen === "whiteboard" && <Whiteboard />}
+          {screen === "or-layout" && <ORLayout />}
+          {screen === "portal" && <PatientPortal />}
+        </div>
       </div>
     </div>
   );
