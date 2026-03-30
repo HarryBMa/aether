@@ -52,7 +52,7 @@ const timelineEvents = [
   { date: "03-05", label: "Preoperativ anestesibedömning", dept: "Anestesi", done: true },
   { date: "03-12", label: "3D-modell mottagen", dept: "Plastikkirurgi", done: true },
   { date: "03-19", label: "MDT — slutlig plangranskning", dept: "MDT", done: false, current: true },
-  { date: "04-02", label: "Operation: resektion + frilapp", dept: "H&H / Plastik", done: false },
+  { date: "04-02", label: "Operation: resektion + lambå", dept: "H&H / Plastik", done: false },
   { date: "04-09", label: "Överflyttning till avdelning", dept: "Avdelning", done: false },
   { date: "04-16", label: "Talterapi börjar", dept: "Rehab", done: false },
   { date: "05-01", label: "Strålbehandling börjar", dept: "Onkologi", done: false },
@@ -71,7 +71,7 @@ const calendarAppts = [
 
 const mdtData = {
   decisions: [
-    "Segmentell mandibulektomi + fibula frilapp (vänster)",
+    "Segmentell mandibulektomi + fibula lambå (vänster)",
     "Operation först, adjuvant strålning postoperativt",
     "Tandextraktioner läkta — godkänd för operation",
     "Fiberoptisk intubation, artärlinje, cell saver i beredskap",
@@ -93,7 +93,7 @@ function CaseSpace({ nav }) {
       <div style={{ width: 220, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
         <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}` }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: C.fg }}>{patient.name}</div>
-          <div style={{ fontSize: 10, fontFamily: mono, color: C.fg3, marginTop: 2 }}>{patient.id} · {patient.age}å · <Tag text="H&H Frilapp" color={C.sage} bg={C.sageBg} /></div>
+          <div style={{ fontSize: 10, fontFamily: mono, color: C.fg3, marginTop: 2 }}>{patient.id} · {patient.age}å · <Tag text="H&H Lambå" color={C.sage} bg={C.sageBg} /></div>
         </div>
         <div style={{ flex: 1, padding: "6px 0", overflowY: "auto" }}>
           {rooms.map((r, i) => (
