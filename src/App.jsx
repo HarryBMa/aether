@@ -430,6 +430,7 @@ function Conference() {
 function DICOMViewer() {
   const [tool, setTool] = useState("pan");
   const [wl, setWl] = useState({ w: 350, l: 40 });
+  const studyUid = "1.2.840.113619.2.290.3.2831164354.783.1725609484.467";
   const tools = [
     { id: "pan", icon: "✋", label: "Panorera" },
     { id: "zoom", icon: "🔍", label: "Zooma" },
@@ -439,6 +440,10 @@ function DICOMViewer() {
     { id: "roi", icon: "⭕", label: "ROI" },
   ];
   const presets = [{ n: "Ben", w: 2000, l: 500 }, { n: "Mjukvävnad", w: 350, l: 40 }, { n: "Lunga", w: 1500, l: -600 }, { n: "Hjärna", w: 80, l: 40 }];
+  const openOhif = () => {
+    const url = `https://viewer.ohif.org/viewer?StudyInstanceUIDs=${encodeURIComponent(studyUid)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
   return (
     <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column", background: C.ink }}>
       <div style={{ padding: "8px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${C.border}` }}>
@@ -446,7 +451,10 @@ function DICOMViewer() {
           <span style={{ ...T.label, fontWeight: 600, color: C.fg }}>OHIF DICOM-visare</span>
           <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>CT Hals C+ · 2026-02-03 · 186 snitt</span>
         </div>
-        <div style={{ display: "flex", gap: 5 }}>
+        <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+          <button onClick={openOhif} style={{ padding: "3px 8px", border: `1px solid ${C.blue}55`, borderRadius: 4, background: C.blueBg, color: C.blue, ...T.meta, fontFamily: mono, cursor: "pointer" }} title="Öppna serien i OHIF web viewer">
+            Öppna i OHIF ↗
+          </button>
           {presets.map(p => (
             <button key={p.n} onClick={() => setWl({ w: p.w, l: p.l })} style={{ padding: "3px 8px", border: `1px solid ${C.border}`, borderRadius: 4, background: wl.w === p.w ? C.s3 : "transparent", color: wl.w === p.w ? C.fg : C.fg3, ...T.meta, fontFamily: mono, cursor: "pointer" }}>{p.n}</button>
           ))}
@@ -682,18 +690,18 @@ function Whiteboard() {
 /* ─── 10. OR-LAYOUT ─── */
 function ORLayout() {
   const [items, setItems] = useState([
-    { id: "table", x: 250, y: 180, w: 160, h: 50, label: "Operationsbord", color: C.fg3 },
-    { id: "micro", x: 100, y: 120, w: 50, h: 50, label: "Mikroskop", color: C.blue },
-    { id: "anesth", x: 250, y: 60, w: 100, h: 40, label: "Anestesistation", color: C.sage },
-    { id: "team1", x: 150, y: 250, w: 80, h: 35, label: "H&H Team", color: C.rose },
-    { id: "team2", x: 350, y: 250, w: 80, h: 35, label: "Plastikteam", color: C.amber },
-    { id: "inst1", x: 60, y: 250, w: 65, h: 30, label: "Instrument 1", color: C.fg3 },
-    { id: "inst2", x: 450, y: 250, w: 65, h: 30, label: "Instrument 2", color: C.fg3 },
-    { id: "monitor", x: 430, y: 80, w: 70, h: 35, label: "Monitorer", color: C.mauve },
-    { id: "carm", x: 80, y: 50, w: 55, h: 45, label: "C-Båge", color: C.fg3 },
-    { id: "cellsaver", x: 440, y: 170, w: 60, h: 35, label: "Cell Saver", color: C.blue },
-    { id: "warm", x: 440, y: 310, w: 65, h: 30, label: "Värmning", color: C.amber },
-    { id: "nurse", x: 250, y: 320, w: 80, h: 30, label: "Op-sjuksköterska", color: C.sage },
+    { id: "table", kind: "table", x: 250, y: 180, w: 170, h: 84, label: "Operationsbord", color: C.fg3 },
+    { id: "micro", kind: "microscope", x: 100, y: 120, w: 88, h: 88, label: "Mikroskop", color: C.blue },
+    { id: "anesth", kind: "anesthesia", x: 250, y: 60, w: 120, h: 80, label: "Anestesistation", color: C.sage },
+    { id: "team1", kind: "person", initials: "H&H", x: 150, y: 270, w: 78, h: 78, label: "H&H Team", color: C.rose },
+    { id: "team2", kind: "person", initials: "PL", x: 350, y: 270, w: 78, h: 78, label: "Plastikteam", color: C.amber },
+    { id: "inst1", kind: "tray", x: 60, y: 255, w: 90, h: 58, label: "Instrument 1", color: C.fg3 },
+    { id: "inst2", kind: "tray", x: 450, y: 255, w: 90, h: 58, label: "Instrument 2", color: C.fg3 },
+    { id: "monitor", kind: "monitor", x: 430, y: 80, w: 92, h: 78, label: "Monitorer", color: C.mauve },
+    { id: "carm", kind: "carm", x: 80, y: 50, w: 96, h: 94, label: "C-Båge", color: C.fg3 },
+    { id: "cellsaver", kind: "tower", x: 440, y: 170, w: 80, h: 96, label: "Cell Saver", color: C.blue },
+    { id: "warm", kind: "warming", x: 440, y: 330, w: 88, h: 56, label: "Värmning", color: C.amber },
+    { id: "nurse", kind: "person", initials: "OP", x: 250, y: 330, w: 78, h: 78, label: "Op-sjuksköterska", color: C.sage },
   ]);
   const [dragging, setDragging] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -764,6 +772,86 @@ function ORLayout() {
     inset: ["Mikroskop centrerat", "Dubbel teamposition", "Perfusionsmonitor synlig för båda"],
   };
 
+  const renderAssetShape = (item) => {
+    const stroke = phaseFocusItems[phase].includes(item.id) ? item.color : C.fg3;
+    const fill = `color-mix(in oklch, ${stroke} 16%, ${C.s1})`;
+
+    if (item.kind === "table") {
+      return (
+        <svg viewBox="0 0 100 60" style={{ width: "88%", height: "72%" }}>
+          <rect x="10" y="18" width="80" height="22" rx="8" fill={fill} stroke={stroke} strokeWidth="2" />
+          <rect x="16" y="8" width="24" height="10" rx="4" fill="none" stroke={stroke} strokeWidth="2" />
+          <line x1="28" y1="40" x2="20" y2="54" stroke={stroke} strokeWidth="2" />
+          <line x1="72" y1="40" x2="80" y2="54" stroke={stroke} strokeWidth="2" />
+          <circle cx="20" cy="55" r="2.5" fill={stroke} />
+          <circle cx="80" cy="55" r="2.5" fill={stroke} />
+        </svg>
+      );
+    }
+    if (item.kind === "carm") {
+      return (
+        <svg viewBox="0 0 80 80" style={{ width: "84%", height: "84%" }}>
+          <path d="M58 18a24 24 0 1 0 0 44" fill="none" stroke={stroke} strokeWidth="6" strokeLinecap="round" />
+          <rect x="48" y="52" width="16" height="16" rx="3" fill={fill} stroke={stroke} strokeWidth="2" />
+          <line x1="20" y1="62" x2="52" y2="62" stroke={stroke} strokeWidth="2" />
+        </svg>
+      );
+    }
+    if (item.kind === "microscope") {
+      return (
+        <svg viewBox="0 0 80 80" style={{ width: "84%", height: "84%" }}>
+          <rect x="28" y="10" width="12" height="20" rx="3" fill={fill} stroke={stroke} strokeWidth="2" />
+          <path d="M40 28l12 8-8 12-12-8z" fill={fill} stroke={stroke} strokeWidth="2" />
+          <line x1="30" y1="48" x2="52" y2="48" stroke={stroke} strokeWidth="3" />
+          <rect x="22" y="52" width="36" height="10" rx="4" fill={fill} stroke={stroke} strokeWidth="2" />
+          <line x1="18" y1="64" x2="62" y2="64" stroke={stroke} strokeWidth="3" />
+        </svg>
+      );
+    }
+    if (item.kind === "monitor") {
+      return (
+        <svg viewBox="0 0 100 70" style={{ width: "86%", height: "74%" }}>
+          <rect x="12" y="8" width="76" height="42" rx="4" fill={fill} stroke={stroke} strokeWidth="2" />
+          <polyline points="20,38 35,28 46,34 62,18 80,24" fill="none" stroke={stroke} strokeWidth="2" />
+          <rect x="44" y="50" width="12" height="6" rx="2" fill={stroke} />
+          <rect x="34" y="56" width="32" height="6" rx="3" fill={fill} stroke={stroke} strokeWidth="2" />
+        </svg>
+      );
+    }
+    if (item.kind === "anesthesia" || item.kind === "tower") {
+      return (
+        <svg viewBox="0 0 80 80" style={{ width: "80%", height: "82%" }}>
+          <rect x="20" y="10" width="40" height="50" rx="5" fill={fill} stroke={stroke} strokeWidth="2" />
+          <line x1="20" y1="25" x2="60" y2="25" stroke={stroke} strokeWidth="1.5" />
+          <line x1="20" y1="40" x2="60" y2="40" stroke={stroke} strokeWidth="1.5" />
+          <circle cx="30" cy="66" r="4" fill={stroke} />
+          <circle cx="50" cy="66" r="4" fill={stroke} />
+        </svg>
+      );
+    }
+    if (item.kind === "tray" || item.kind === "warming") {
+      return (
+        <svg viewBox="0 0 100 60" style={{ width: "88%", height: "70%" }}>
+          <rect x="8" y="10" width="84" height="28" rx="6" fill={fill} stroke={stroke} strokeWidth="2" />
+          <line x1="20" y1="38" x2="20" y2="52" stroke={stroke} strokeWidth="2" />
+          <line x1="80" y1="38" x2="80" y2="52" stroke={stroke} strokeWidth="2" />
+          <line x1="8" y1="52" x2="92" y2="52" stroke={stroke} strokeWidth="2" />
+        </svg>
+      );
+    }
+    if (item.kind === "person") {
+      return (
+        <svg viewBox="0 0 80 80" style={{ width: "86%", height: "86%" }}>
+          <circle cx="40" cy="24" r="11" fill={fill} stroke={stroke} strokeWidth="2" />
+          <rect x="24" y="38" width="32" height="24" rx="10" fill={fill} stroke={stroke} strokeWidth="2" />
+          <text x="40" y="54" textAnchor="middle" fill={stroke} fontSize="10" fontFamily={mono}>{item.initials || "TM"}</text>
+        </svg>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div style={{ height: "calc(100vh - 48px)", display: "flex", flexDirection: "column" }}>
       <div style={{ padding: "8px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
@@ -793,8 +881,11 @@ function ORLayout() {
             Dra utrustning för att testa flödet live
           </div>
           {items.map(item => (
-            <div key={item.id} className="or-item" onMouseDown={(e) => handleMouseDown(e, item.id)} onTouchStart={(e) => handleMouseDown(e, item.id)} style={{ position: "absolute", left: item.x, top: item.y, width: item.w, height: item.h, background: phaseFocusItems[phase].includes(item.id) ? `color-mix(in oklch, ${item.color} 18%, ${C.s1})` : `${item.color}18`, border: `1.5px solid ${item.color}55`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", cursor: "grab", userSelect: "none", touchAction: "none", boxShadow: dragging === item.id ? `0 0 0 2px ${item.color}, 0 20px 40px color-mix(in oklch, ${item.color} 18%, transparent)` : phaseFocusItems[phase].includes(item.id) ? `0 0 0 1px color-mix(in oklch, ${item.color} 35%, transparent), 0 16px 32px color-mix(in oklch, ${item.color} 12%, transparent)` : "none", transform: phaseFocusItems[phase].includes(item.id) ? "scale(1.03)" : "scale(1)", transition: dragging === item.id ? "none" : "transform 180ms ease, box-shadow 180ms ease, background 180ms ease" }}>
-              <span style={{ ...T.meta, fontFamily: mono, color: item.color, textAlign: "center", padding: 2, lineHeight: 1.25 }}>{item.label}</span>
+            <div key={item.id} className="or-item" onMouseDown={(e) => handleMouseDown(e, item.id)} onTouchStart={(e) => handleMouseDown(e, item.id)} style={{ position: "absolute", left: item.x, top: item.y, width: item.w, height: item.h, background: phaseFocusItems[phase].includes(item.id) ? `color-mix(in oklch, ${item.color} 16%, ${C.s1})` : `${item.color}12`, border: `1.5px solid ${item.color}55`, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", cursor: "grab", userSelect: "none", touchAction: "none", boxShadow: dragging === item.id ? `0 0 0 2px ${item.color}, 0 20px 40px color-mix(in oklch, ${item.color} 18%, transparent)` : phaseFocusItems[phase].includes(item.id) ? `0 0 0 1px color-mix(in oklch, ${item.color} 35%, transparent), 0 16px 32px color-mix(in oklch, ${item.color} 12%, transparent)` : "none", transform: phaseFocusItems[phase].includes(item.id) ? "scale(1.03)" : "scale(1)", transition: dragging === item.id ? "none" : "transform 180ms ease, box-shadow 180ms ease, background 180ms ease", padding: 4 }}>
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
+                {renderAssetShape(item)}
+              </div>
+              <span style={{ ...T.meta, fontFamily: mono, color: item.color, textAlign: "center", padding: "0 4px 2px", lineHeight: 1.2 }}>{item.label}</span>
             </div>
           ))}
         </div>
