@@ -509,7 +509,7 @@ function DICOMViewer() {
           <Label>Anteckningar</Label>
           {[
             { author: "Dr. Bergström", text: "Tumörmarginal — 32,4mm på bredaste", slice: 94, color: C.rose },
-            { author: "Dr. Johansson", text: "Markera pedikelfäste för lapplanering", slice: 112, color: C.blue },
+            { author: "Dr. Johansson", text: "Markera pedikelfäste för lambåplanering", slice: 112, color: C.blue },
             { author: "Dr. Eriksson", text: "Tandrötter i resektionszon — bekräfta extraktionsplan", slice: 78, color: C.amber },
           ].map((a, i) => (
             <div key={i} style={{ padding: 8, marginBottom: 6, background: C.s2, borderRadius: 5, borderLeft: `2px solid ${a.color}`, cursor: "pointer" }}>
@@ -752,7 +752,7 @@ function ORLayout() {
   const phaseNotes = {
     resection: "H&H team primärt. Mikroskop i beredskap. C-båge för mandibelbedömning. Anestesi: fiberoptisk intubation, artärlinje höger arm.",
     harvest: "Plastikteam vid benet. H&H team förbereder mottagarkärl. Flytta mikroskop till benet. Cell saver aktiv.",
-    inset: "Båda team vid huvudet. Mikroskop vid anastomosstället. Övervaka lappperfusion. Värmefilt på nederkroppen.",
+    inset: "Båda team vid huvudet. Mikroskop vid anastomosstället. Övervaka lambåperfusion. Värmefilt på nederkroppen.",
   };
   const phaseFocusItems = {
     resection: ["table", "micro", "anesth", "team1", "monitor", "carm"],
@@ -765,7 +765,7 @@ function ORLayout() {
       { label: "Anestesizon", color: C.sage, top: "6%", left: "34%", width: "22%", height: "18%" },
     ],
     harvest: [
-      { label: "Lapputtag", color: C.amber, top: "46%", left: "10%", width: "28%", height: "28%" },
+      { label: "Lambåuttag", color: C.amber, top: "46%", left: "10%", width: "28%", height: "28%" },
       { label: "Perfusionsstöd", color: C.blue, top: "38%", left: "70%", width: "18%", height: "24%" },
     ],
     inset: [
@@ -775,7 +775,7 @@ function ORLayout() {
   };
   const phaseChecklist = {
     resection: ["Bekräfta resektionsmarginal", "Fri väg till C-båge", "Mikroskop i standby"],
-    harvest: ["Lapputtag sterilt avskärmat", "Cell saver aktiv", "Transportlinje till huvudet fri"],
+    harvest: ["Lambåuttag sterilt avskärmat", "Cell saver aktiv", "Transportlinje till huvudet fri"],
     inset: ["Mikroskop centrerat", "Dubbel teamposition", "Perfusionsmonitor synlig för båda"],
   };
 
@@ -867,7 +867,7 @@ function ORLayout() {
           <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>{patient.name} · OR 4 Karolinska</span>
         </div>
         <div style={{ display: "flex", gap: 4 }}>
-          {[{ id: "resection", label: "Fas 1: Resektion" }, { id: "harvest", label: "Fas 2: Lapputtag" }, { id: "inset", label: "Fas 3: Anastomos" }].map(p => (
+          {[{ id: "resection", label: "Fas 1: Resektion" }, { id: "harvest", label: "Fas 2: Lambåuttag" }, { id: "inset", label: "Fas 3: Anastomos" }].map(p => (
             <button key={p.id} onClick={() => setPhase(p.id)} style={{ padding: "4px 10px", border: `1px solid ${phase === p.id ? C.sage + "66" : C.border}`, borderRadius: 5, background: phase === p.id ? C.sageBg : "transparent", color: phase === p.id ? C.sage : C.fg3, ...T.meta, fontFamily: mono, cursor: "pointer" }}>{p.label}</button>
           ))}
         </div>
