@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { MessageSquare, BarChart2, ClipboardList, CalendarDays, Users, User, Video, Microscope, PenLine, LayoutDashboard, Stethoscope, Activity, Scan, Bone, MessageCircle, Pill, Mic, MicOff, Monitor, Disc, PhoneOff, Hand, ZoomIn, Sun, Ruler, Pencil, Circle, Square, Type, ArrowUpRight, Eraser, Move, ChevronDown, Lightbulb, CalendarClock, Bandage, HelpCircle, Car, ExternalLink } from "lucide-react";
 
 const C = {
   bg: "oklch(13% 0.008 55)", s1: "oklch(16% 0.006 55)", s2: "oklch(19% 0.006 55)", s3: "oklch(23% 0.005 55)",
@@ -37,14 +38,14 @@ const Label = ({ children }) => (
 );
 
 const rooms = [
-  { icon: "🏥", name: "Kirurgplanering", unread: 3, color: C.sage },
-  { icon: "💉", name: "Anestesi", unread: 0, color: C.blue },
-  { icon: "📡", name: "Radiologi", unread: 1, color: C.amber },
-  { icon: "🔬", name: "Onkologi", unread: 0, color: C.mauve },
-  { icon: "🦴", name: "Maxillofacial", unread: 2, color: C.amber },
-  { icon: "🗣️", name: "Rehab & Tal", unread: 0, color: C.sage },
-  { icon: "💊", name: "Apotek", unread: 0, color: C.blue },
-  { icon: "📅", name: "Vårdsamordning", unread: 1, color: C.rose },
+  { icon: Stethoscope, name: "Kirurgplanering", unread: 3, color: C.sage },
+  { icon: Activity, name: "Anestesi", unread: 0, color: C.blue },
+  { icon: Scan, name: "Radiologi", unread: 1, color: C.amber },
+  { icon: Microscope, name: "Onkologi", unread: 0, color: C.mauve },
+  { icon: Bone, name: "Maxillofacial", unread: 2, color: C.amber },
+  { icon: MessageCircle, name: "Rehab & Tal", unread: 0, color: C.sage },
+  { icon: Pill, name: "Apotek", unread: 0, color: C.blue },
+  { icon: CalendarDays, name: "Vårdsamordning", unread: 1, color: C.rose },
 ];
 
 const messages = [
@@ -100,6 +101,7 @@ const mdtData = {
 /* ─── 1. ÄRENDEYTA ─── */
 function CaseSpace({ nav }) {
   const [room, setRoom] = useState(0);
+  const RoomIcon = rooms[room].icon;
   return (
     <div className="case-space" style={{ display: "flex", height: "100%", minHeight: "calc(100vh - 48px)" }}>
       <div className="case-space-sidebar" style={{ width: 220, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
@@ -110,7 +112,7 @@ function CaseSpace({ nav }) {
         <div style={{ flex: 1, padding: "6px 0", overflowY: "auto" }}>
           {rooms.map((r, i) => (
             <div key={i} onClick={() => setRoom(i)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 14px", cursor: "pointer", background: room === i ? C.s2 : "transparent", borderLeft: room === i ? `2px solid ${r.color}` : "2px solid transparent" }}>
-              <span style={{ fontSize: 12 }}>{r.icon}</span>
+              <r.icon size={12} style={{ flexShrink: 0 }} />
               <span style={{ ...T.label, color: room === i ? C.fg : C.fg2, flex: 1, fontWeight: room === i ? 500 : 400 }}>{r.name}</span>
               <Badge n={r.unread} color={r.color} />
             </div>
@@ -122,7 +124,7 @@ function CaseSpace({ nav }) {
       </div>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <div style={{ padding: "9px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span style={{ ...T.label, fontWeight: 500, color: C.fg }}>{rooms[room].icon} {rooms[room].name} <span style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>· 4 deltagare</span></span>
+          <span style={{ ...T.label, fontWeight: 500, color: C.fg, display: "flex", alignItems: "center", gap: 6 }}><RoomIcon size={14} />{rooms[room].name} <span style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>· 4 deltagare</span></span>
         </div>
         <div style={{ flex: 1, padding: 16, overflowY: "auto" }}>
           {messages.map((m, i) => (
@@ -316,7 +318,7 @@ function PatientPortal() {
       <div style={{ maxWidth: 440, margin: "0 auto", padding: "20px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: "1.45rem", lineHeight: 1.2, fontWeight: 600 }}>Hej Erik 👋</div>
+            <div style={{ fontSize: "1.45rem", lineHeight: 1.2, fontWeight: 600 }}>Hej Erik</div>
             <div style={{ ...T.label, color: lt2 }}>Din vårdöversikt</div>
           </div>
           <div style={{ ...T.meta, fontFamily: mono, padding: "3px 8px", background: "oklch(90% 0.03 155)", color: "oklch(35% 0.1 155)", borderRadius: 16 }}>BankID ✓</div>
@@ -325,7 +327,7 @@ function PatientPortal() {
           <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Närmast i planen</div>
           <div style={{ fontSize: "1.08rem", lineHeight: 1.3, fontWeight: 600 }}>Strålbehandling (14/33)</div>
           <div style={{ ...T.body, color: lt2 }}>Tis 25 mars kl. 10:00 · Karolinska Solna</div>
-          <div style={{ ...T.bodySm, color: lt2, marginTop: 6, padding: "6px 8px", background: lb, borderRadius: 5 }}>💡 Dietistbesök samma dag 14:00</div>
+          <div style={{ ...T.bodySm, color: lt2, marginTop: 6, padding: "6px 8px", background: lb, borderRadius: 5, display: "flex", alignItems: "center", gap: 6 }}><Lightbulb size={14} />Dietistbesök samma dag 14:00</div>
         </div>
         <div style={card}>
           <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Vecka 13 — 5 besök</div>
@@ -344,9 +346,14 @@ function PatientPortal() {
         </div>
         <div style={card}>
           <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Hur kan vi hjälpa dig?</div>
-          {["📅 Jag behöver ändra en tid", "🩹 Jag vill rapportera symtom", "❓ Jag har en fråga om behandlingen", "🚗 Jag behöver praktisk hjälp"].map((m, i) => (
+          {[
+            { icon: CalendarClock, label: "Jag behöver ändra en tid" },
+            { icon: Bandage, label: "Jag vill rapportera symtom" },
+            { icon: HelpCircle, label: "Jag har en fråga om behandlingen" },
+            { icon: Car, label: "Jag behöver praktisk hjälp" },
+          ].map((m, i) => (
             <div key={i} style={{ padding: "8px 10px", marginBottom: 3, background: lb, borderRadius: 5, cursor: "pointer", ...T.bodySm, display: "flex", justifyContent: "space-between" }}>
-              <span>{m}</span><span style={{ color: lt2 }}>→</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 6 }}><m.icon size={14} />{m.label}</span><span style={{ color: lt2 }}>→</span>
             </div>
           ))}
         </div>
@@ -410,14 +417,14 @@ function Conference() {
       )}
       <div className="conference-controls" style={{ padding: "10px 16px", background: C.s1, borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
         {[
-          { label: muted ? "Avtysta" : "Tysta", icon: muted ? "🔇" : "🎤", action: () => setMuted(!muted), active: !muted },
-          { label: "Video", icon: "📹", active: true },
-          { label: sharing ? "Sluta dela" : "Dela skärm", icon: "🖥️", action: () => setSharing(!sharing), active: sharing },
-          { label: recording ? "Stoppa" : "Spela in", icon: "⏺️", action: () => setRecording(!recording), active: recording, color: C.rose },
-          { label: "Avsluta", icon: "📵", end: true },
+          { label: muted ? "Avtysta" : "Tysta", icon: muted ? MicOff : Mic, action: () => setMuted(!muted), active: !muted },
+          { label: "Video", icon: Video, active: true },
+          { label: sharing ? "Sluta dela" : "Dela skärm", icon: Monitor, action: () => setSharing(!sharing), active: sharing },
+          { label: recording ? "Stoppa" : "Spela in", icon: Disc, action: () => setRecording(!recording), active: recording, color: C.rose },
+          { label: "Avsluta", icon: PhoneOff, end: true },
         ].map((b, i) => (
           <button key={i} onClick={b.action} style={{ minWidth: 44, minHeight: 44, padding: "7px 13px", border: "none", borderRadius: 6, cursor: "pointer", background: b.end ? C.rose : b.active && b.color ? `${b.color}33` : b.active ? C.s3 : C.s2, color: b.end ? C.bg : b.color || C.fg2, fontSize: 11, fontFamily: mono, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, transition: "transform 180ms ease, background-color 180ms ease" }}>
-            <span>{b.icon}</span> {b.label}
+            <b.icon size={14} /> {b.label}
           </button>
         ))}
       </div>
@@ -432,12 +439,12 @@ function DICOMViewer() {
   const [wl, setWl] = useState({ w: 350, l: 40 });
   const studyUid = "1.2.840.113619.2.290.3.2831164354.783.1725609484.467";
   const tools = [
-    { id: "pan", icon: "✋", label: "Panorera" },
-    { id: "zoom", icon: "🔍", label: "Zooma" },
-    { id: "wl", icon: "☀️", label: "F/N" },
-    { id: "measure", icon: "📏", label: "Mäta" },
-    { id: "annotate", icon: "✏️", label: "Anteckna" },
-    { id: "roi", icon: "⭕", label: "ROI" },
+    { id: "pan", icon: Hand, label: "Panorera" },
+    { id: "zoom", icon: ZoomIn, label: "Zooma" },
+    { id: "wl", icon: Sun, label: "F/N" },
+    { id: "measure", icon: Ruler, label: "Mäta" },
+    { id: "annotate", icon: Pencil, label: "Anteckna" },
+    { id: "roi", icon: Circle, label: "ROI" },
   ];
   const presets = [{ n: "Ben", w: 2000, l: 500 }, { n: "Mjukvävnad", w: 350, l: 40 }, { n: "Lunga", w: 1500, l: -600 }, { n: "Hjärna", w: 80, l: 40 }];
   const openOhif = () => {
@@ -452,8 +459,8 @@ function DICOMViewer() {
           <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginLeft: 8 }}>CT Hals C+ · 2026-02-03 · 186 snitt</span>
         </div>
         <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
-          <button onClick={openOhif} style={{ padding: "3px 8px", border: `1px solid ${C.blue}55`, borderRadius: 4, background: C.blueBg, color: C.blue, ...T.meta, fontFamily: mono, cursor: "pointer" }} title="Öppna serien i OHIF web viewer">
-            Öppna i OHIF ↗
+          <button onClick={openOhif} style={{ padding: "3px 8px", border: `1px solid ${C.blue}55`, borderRadius: 4, background: C.blueBg, color: C.blue, ...T.meta, fontFamily: mono, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }} title="Öppna serien i OHIF web viewer">
+            Öppna i OHIF <ExternalLink size={12} />
           </button>
           {presets.map(p => (
             <button key={p.n} onClick={() => setWl({ w: p.w, l: p.l })} style={{ padding: "3px 8px", border: `1px solid ${C.border}`, borderRadius: 4, background: wl.w === p.w ? C.s3 : "transparent", color: wl.w === p.w ? C.fg : C.fg3, ...T.meta, fontFamily: mono, cursor: "pointer" }}>{p.n}</button>
@@ -464,12 +471,12 @@ function DICOMViewer() {
         <div className="dicom-toolbar" style={{ width: 52, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 2 }}>
           {tools.map(t => (
             <button key={t.id} aria-label={t.label} onClick={() => setTool(t.id)} style={{ width: 44, height: 44, border: "none", borderRadius: 6, cursor: "pointer", background: tool === t.id ? C.s3 : "transparent", color: tool === t.id ? C.fg : C.fg3, fontSize: 16, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1 }}>
-              <span>{t.icon}</span>
+              <t.icon size={14} />
               <span style={{ fontSize: "0.62rem", lineHeight: 1.1, fontFamily: mono }}>{t.label}</span>
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <button aria-label="Länka bildserien till diskussion" style={{ width: 44, height: 44, border: "none", borderRadius: 6, background: "transparent", color: C.sage, fontSize: 16, cursor: "pointer" }} title="Länka till diskussion">💬</button>
+          <button aria-label="Länka bildserien till diskussion" style={{ width: 44, height: 44, border: "none", borderRadius: 6, background: "transparent", color: C.sage, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center" }} title="Länka till diskussion"><MessageCircle size={16} /></button>
         </div>
         <div style={{ flex: 1, minWidth: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ width: "90%", maxWidth: 500, aspectRatio: "1", background: "radial-gradient(ellipse at 50% 45%, oklch(25% 0.01 55), oklch(8% 0.005 55) 70%)", borderRadius: 4, position: "relative", overflow: "hidden" }}>
@@ -607,9 +614,9 @@ function Whiteboard() {
   const stopDraw = useCallback(() => { setIsDrawing(false); lastPos.current = null; }, []);
 
   const drawTools = [
-    { id: "pen", icon: "✏️" }, { id: "line", icon: "📏" }, { id: "rect", icon: "⬜" },
-    { id: "circle", icon: "⭕" }, { id: "text", icon: "T" }, { id: "arrow", icon: "↗" },
-    { id: "eraser", icon: "🧹" }, { id: "move", icon: "✋" },
+    { id: "pen", icon: Pencil }, { id: "line", icon: Ruler }, { id: "rect", icon: Square },
+    { id: "circle", icon: Circle }, { id: "text", icon: Type }, { id: "arrow", icon: ArrowUpRight },
+    { id: "eraser", icon: Eraser }, { id: "move", icon: Move },
   ];
 
   return (
@@ -639,7 +646,7 @@ function Whiteboard() {
       <div className="whiteboard-layout" style={{ display: "flex", flex: 1, overflow: "hidden", minWidth: 0 }}>
         <div className="whiteboard-toolbar" style={{ width: 48, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 2 }}>
           {drawTools.map(t => (
-            <button key={t.id} className="whiteboard-tool" aria-label={`Välj verktyg ${t.id}`} onClick={() => setActiveTool(t.id)} style={{ width: 44, height: 44, border: "none", borderRadius: 6, cursor: "pointer", background: activeTool === t.id ? C.s3 : "transparent", color: activeTool === t.id ? C.fg : C.fg3, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: activeTool === t.id ? `0 12px 32px color-mix(in oklch, ${penColor} 16%, transparent)` : "none" }}>{t.icon}</button>
+            <button key={t.id} className="whiteboard-tool" aria-label={`Välj verktyg ${t.id}`} onClick={() => setActiveTool(t.id)} style={{ width: 44, height: 44, border: "none", borderRadius: 6, cursor: "pointer", background: activeTool === t.id ? C.s3 : "transparent", color: activeTool === t.id ? C.fg : C.fg3, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: activeTool === t.id ? `0 12px 32px color-mix(in oklch, ${penColor} 16%, transparent)` : "none" }}><t.icon size={14} /></button>
           ))}
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingBottom: 6 }}>
@@ -911,18 +918,18 @@ function ORLayout() {
 
 /* ─── APP-SKAL ─── */
 const primaryScreens = [
-  { id: "space", label: "Ärendeyta", icon: "💬" },
-  { id: "timeline", label: "Tidslinje", icon: "📊" },
-  { id: "consult", label: "Konsultation", icon: "📋" },
-  { id: "calendar", label: "Kalender", icon: "📅" },
-  { id: "mdt", label: "MDT", icon: "🗂️" },
-  { id: "portal", label: "Patient", icon: "👤" },
+  { id: "space", label: "Ärendeyta", icon: MessageSquare },
+  { id: "timeline", label: "Tidslinje", icon: BarChart2 },
+  { id: "consult", label: "Konsultation", icon: ClipboardList },
+  { id: "calendar", label: "Kalender", icon: CalendarDays },
+  { id: "mdt", label: "MDT", icon: Users },
+  { id: "portal", label: "Patient", icon: User },
 ];
 const toolScreens = [
-  { id: "conference", label: "Konferens", icon: "📹" },
-  { id: "viewer", label: "DICOM", icon: "🔬" },
-  { id: "whiteboard", label: "Whiteboard", icon: "🖊" },
-  { id: "or-layout", label: "OR-layout", icon: "🏥" },
+  { id: "conference", label: "Konferens", icon: Video },
+  { id: "viewer", label: "DICOM", icon: Microscope },
+  { id: "whiteboard", label: "Whiteboard", icon: PenLine },
+  { id: "or-layout", label: "OR-layout", icon: LayoutDashboard },
 ];
 
 const screenSequence = [...primaryScreens, ...toolScreens];
@@ -998,24 +1005,24 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative", overflow: "hidden" }}>
       <div className="app-shell-ambient" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: activeMeta.glow, opacity: 1 }} />
-      <nav className="app-nav" style={{ height: 48, background: "color-mix(in oklch, oklch(16% 0.006 55) 88%, transparent)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflowX: "auto", position: "relative", zIndex: 1, backdropFilter: "blur(16px)" }}>
+      <nav className="app-nav" style={{ height: 48, background: "color-mix(in oklch, oklch(16% 0.006 55) 88%, transparent)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflowX: "auto", position: "relative", zIndex: 100, backdropFilter: "blur(16px)" }}>
         <div style={{ fontSize: "0.98rem", lineHeight: 1.2, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap" }}>
           <span style={{ color: C.sage }}>●</span> CasePlatform
         </div>
         {primaryScreens.map(s => (
           <button key={s.id} className={`app-nav-button${screen === s.id ? " is-active" : ""}`} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: screen === s.id ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: screen === s.id ? C.fg : C.fg3, fontSize: "0.9rem", lineHeight: 1.2, fontFamily: font, fontWeight: screen === s.id ? 600 : 400, whiteSpace: "nowrap" }}>
-            {s.icon} {s.label}
+            <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />{s.label}
           </button>
         ))}
         <div style={{ position: "relative", marginLeft: 4 }}>
           <button className={`app-nav-button${isToolScreen || showTools ? " is-active" : ""}`} onClick={() => setShowTools(v => !v)} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: isToolScreen || showTools ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: isToolScreen || showTools ? C.fg : C.fg3, fontSize: "0.9rem", lineHeight: 1.2, fontFamily: font, whiteSpace: "nowrap" }}>
-            Verktyg ▾
+            Verktyg <ChevronDown size={13} style={{ verticalAlign: "middle" }} />
           </button>
           {showTools && (
             <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.s2, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 100, minWidth: 160, boxShadow: `0 20px 48px color-mix(in oklch, ${activeMeta.accent} 12%, transparent)` }}>
               {toolScreens.map(s => (
                 <button key={s.id} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.9rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
-                  {s.icon} {s.label}
+                  <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 6 }} />{s.label}
                 </button>
               ))}
             </div>
