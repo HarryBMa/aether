@@ -1005,7 +1005,7 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative", overflow: "hidden" }}>
       <div className="app-shell-ambient" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: activeMeta.glow, opacity: 1 }} />
-      <nav className="app-nav" style={{ height: 48, background: "color-mix(in oklch, oklch(16% 0.006 55) 88%, transparent)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflowX: "auto", position: "relative", zIndex: 100, backdropFilter: "blur(16px)" }}>
+      <nav className="app-nav" style={{ height: 48, background: "color-mix(in oklch, oklch(16% 0.006 55) 88%, transparent)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflow: "visible", position: "relative", zIndex: 1000, backdropFilter: "blur(16px)" }}>
         <div style={{ fontSize: "0.98rem", lineHeight: 1.2, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap" }}>
           <span style={{ color: C.sage }}>●</span> CasePlatform
         </div>
@@ -1019,7 +1019,7 @@ export default function App() {
             Verktyg <ChevronDown size={13} style={{ verticalAlign: "middle" }} />
           </button>
           {showTools && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.s2, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 100, minWidth: 160, boxShadow: `0 20px 48px color-mix(in oklch, ${activeMeta.accent} 12%, transparent)` }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.s2, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 2000, minWidth: 160, boxShadow: `0 20px 48px color-mix(in oklch, ${activeMeta.accent} 12%, transparent)` }}>
               {toolScreens.map(s => (
                 <button key={s.id} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.9rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
                   <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 6 }} />{s.label}
