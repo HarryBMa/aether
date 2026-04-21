@@ -1004,17 +1004,55 @@ const careflowMeta = {
 export default function App() {
   const [screen, setScreen] = useState("space");
   const [showTools, setShowTools] = useState(false);
+  const [isShifting, setIsShifting] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const isToolScreen = toolScreens.some(s => s.id === screen);
   const activeMeta = careflowMeta[screen];
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPrefersReducedMotion(media.matches);
+    sync();
+    media.addEventListener("change", sync);
+    return () => media.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!isShifting) return;
+    const timer = window.setTimeout(() => setIsShifting(false), 460);
+    return () => window.clearTimeout(timer);
+  }, [isShifting]);
+
+  const commitScreenChange = useCallback((next) => {
+    setScreen(next);
+    setShowTools(false);
+    setIsShifting(true);
+  }, []);
+
+  const changeScreen = useCallback((next) => {
+    if (next === screen) {
+      setShowTools(false);
+      return;
+    }
+
+    const swap = () => commitScreenChange(next);
+    if (!prefersReducedMotion && typeof document !== "undefined" && "startViewTransition" in document) {
+      document.startViewTransition(swap);
+    } else {
+      swap();
+    }
+  }, [commitScreenChange, prefersReducedMotion, screen]);
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative", overflow: "hidden" }}>
+    <div className={`app-shell${isShifting ? " is-shifting" : ""}`} style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative", overflow: "hidden" }}>
       <div className="app-shell-ambient" style={{ display: "none" }} />
       <nav className="app-nav" style={{ height: 48, background: `color-mix(in oklch, ${C.bg} 94%, transparent)`, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflow: "visible", position: "relative", zIndex: 1000, backdropFilter: "blur(16px)" }}>
         <div style={{ fontSize: "1rem", lineHeight: 1.2, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap" }}>
           <span style={{ color: C.sage }}>●</span> CasePlatform
         </div>
         {primaryScreens.map(s => (
-          <button key={s.id} className={`app-nav-button${screen === s.id ? " is-active" : ""}`} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: screen === s.id ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: screen === s.id ? C.fg : C.fg3, fontSize: "0.95rem", lineHeight: 1.2, fontFamily: font, fontWeight: screen === s.id ? 600 : 400, whiteSpace: "nowrap" }}>
+          <button key={s.id} className={`app-nav-button${screen === s.id ? " is-active" : ""}`} onClick={() => changeScreen(s.id)} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: screen === s.id ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: screen === s.id ? C.fg : C.fg3, fontSize: "0.95rem", lineHeight: 1.2, fontFamily: font, fontWeight: screen === s.id ? 600 : 400, whiteSpace: "nowrap", viewTransitionName: screen === s.id ? "active-nav-pill" : "none" }}>
             <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />{s.label}
           </button>
         ))}
@@ -1025,7 +1063,7 @@ export default function App() {
           {showTools && (
             <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 2000, minWidth: 160, boxShadow: C.shadowSm }}>
               {toolScreens.map(s => (
-                <button key={s.id} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.95rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
+                <button key={s.id} onClick={() => changeScreen(s.id)} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.95rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
                   <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 6 }} />{s.label}
                 </button>
               ))}
@@ -1036,8 +1074,8 @@ export default function App() {
       <div className="careflow-ribbon" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, alignItems: "center", padding: "12px 16px 14px", borderBottom: `1px solid ${C.border}`, background: C.s1 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ ...T.eyebrow, color: activeMeta.accent, fontFamily: font, fontWeight: 600 }}>Fas: {activeMeta.phase}</span>
-            <span style={{ ...T.bodySm, color: C.fg2 }}>{activeMeta.cue}</span>
+            <span className="careflow-phase" style={{ ...T.eyebrow, color: activeMeta.accent, fontFamily: font, fontWeight: 600 }}>Fas: {activeMeta.phase}</span>
+            <span className="careflow-cue" style={{ ...T.bodySm, color: C.fg2 }}>{activeMeta.cue}</span>
           </div>
         </div>
       </div>
@@ -1045,6 +1083,28 @@ export default function App() {
         @keyframes careflowReveal {
           0% { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(10px); }
           100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        @keyframes navSettlingPulse {
+          0% { opacity: 0.72; transform: translateY(-2px) scale(0.985); }
+          60% { opacity: 1; transform: translateY(0) scale(1.01); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes cueSlideIn {
+          0% { opacity: 0; transform: translateY(6px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes ribbonSettle {
+          0% { opacity: 0.82; transform: translateY(-4px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+
+        ::view-transition-old(active-nav-pill),
+        ::view-transition-new(active-nav-pill) {
+          animation-duration: 300ms;
+          animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         .app-nav::-webkit-scrollbar { display: none; }
@@ -1062,6 +1122,24 @@ export default function App() {
           font-weight: 600;
         }
 
+        @media (min-width: 901px) {
+          .is-shifting .careflow-ribbon {
+            animation: ribbonSettle 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+          }
+
+          .is-shifting .careflow-phase {
+            animation: cueSlideIn 320ms cubic-bezier(0.2, 0.8, 0.2, 1);
+          }
+
+          .is-shifting .careflow-cue {
+            animation: cueSlideIn 360ms cubic-bezier(0.2, 0.8, 0.2, 1) 40ms both;
+          }
+
+          .is-shifting .app-nav-button.is-active {
+            animation: navSettlingPulse 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
+          }
+        }
+
         .careflow-stage {
           animation: careflowReveal 420ms cubic-bezier(0.2, 0.7, 0.2, 1);
           position: relative;
@@ -1075,6 +1153,21 @@ export default function App() {
         .or-item,
         .whiteboard-tool {
           will-change: transform, box-shadow;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .careflow-stage,
+          .app-nav-button,
+          .careflow-ribbon,
+          .careflow-phase,
+          .careflow-cue,
+          .or-item,
+          .whiteboard-tool,
+          .conference-controls button {
+            animation: none !important;
+            transition: none !important;
+            transform: none !important;
+          }
         }
 
         .or-item:hover,
@@ -1158,7 +1251,7 @@ export default function App() {
       `}</style>
       <div style={{ flex: 1, overflowY: "auto" }} onClick={() => showTools && setShowTools(false)}>
         <div key={screen} className="careflow-stage">
-          {screen === "space" && <CaseSpace nav={setScreen} />}
+          {screen === "space" && <CaseSpace nav={changeScreen} />}
           {screen === "timeline" && <Timeline />}
           {screen === "consult" && <ConsultRequest />}
           {screen === "calendar" && <CalendarView />}
