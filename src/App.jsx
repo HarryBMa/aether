@@ -2,18 +2,18 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { MessageSquare, BarChart2, ClipboardList, CalendarDays, Users, User, Video, Microscope, PenLine, LayoutDashboard, Stethoscope, Activity, Scan, Bone, MessageCircle, Pill, Mic, MicOff, Monitor, Disc, PhoneOff, Hand, ZoomIn, Sun, Ruler, Pencil, Circle, Square, Type, ArrowUpRight, Eraser, Move, ChevronDown, Lightbulb, CalendarClock, Bandage, HelpCircle, Car, ExternalLink } from "lucide-react";
 
 const C = {
-  bg: "oklch(13% 0.008 55)", s1: "oklch(16% 0.006 55)", s2: "oklch(19% 0.006 55)", s3: "oklch(23% 0.005 55)",
-  fg: "oklch(90% 0.01 55)", fg2: "oklch(68% 0.01 55)", fg3: "oklch(48% 0.012 55)", border: "oklch(22% 0.008 55)",
-  ink: "oklch(8% 0.005 55)", ink2: "oklch(10% 0.005 55)",
-  sage: "oklch(65% 0.1 155)", sageBg: "oklch(20% 0.03 155)",
-  blue: "oklch(65% 0.12 245)", blueBg: "oklch(20% 0.03 245)",
-  amber: "oklch(72% 0.14 75)", amberBg: "oklch(22% 0.04 75)",
-  rose: "oklch(65% 0.12 15)", roseBg: "oklch(20% 0.03 15)",
-  mauve: "oklch(65% 0.1 310)", mauveBg: "oklch(20% 0.03 310)",
-  shadowSm: "0 1px 3px color-mix(in oklch, oklch(0% 0 0) 12%, transparent)",
+  bg: "oklch(98% 0.004 55)", s1: "oklch(96% 0.005 55)", s2: "oklch(93% 0.007 55)", s3: "oklch(88% 0.008 55)",
+  fg: "oklch(14% 0.010 55)", fg2: "oklch(36% 0.012 55)", fg3: "oklch(54% 0.010 55)", border: "oklch(84% 0.010 55)",
+  ink: "oklch(10% 0.006 55)", ink2: "oklch(13% 0.006 55)",
+  sage: "oklch(34% 0.12 155)", sageBg: "oklch(93% 0.05 155)",
+  blue: "oklch(35% 0.13 245)", blueBg: "oklch(93% 0.05 245)",
+  amber: "oklch(38% 0.12 75)", amberBg: "oklch(94% 0.06 75)",
+  rose: "oklch(40% 0.12 15)", roseBg: "oklch(94% 0.05 15)",
+  mauve: "oklch(36% 0.09 310)", mauveBg: "oklch(93% 0.04 310)",
+  shadowSm: "0 1px 3px color-mix(in oklch, oklch(0% 0 0) 10%, transparent)",
 };
-const font = "'Instrument Sans', system-ui, sans-serif";
-const mono = "'IBM Plex Mono', monospace";
+const font = "'Schibsted Grotesk', system-ui, sans-serif";
+const mono = "'Martian Mono', monospace";
 const T = {
   eyebrow: { fontSize: "0.72rem", lineHeight: 1.4, letterSpacing: "0.08em" },
   meta: { fontSize: "0.8rem", lineHeight: 1.45 },
@@ -27,14 +27,14 @@ const T = {
 const patient = { name: "Erik Lindström", id: "EL-2026-0847", age: 58 };
 
 const Tag = ({ text, color, bg }) => (
-  <span style={{ ...T.meta, fontWeight: 500, fontFamily: mono, color, background: bg, padding: "2px 8px", borderRadius: 4 }}>{text}</span>
+  <span style={{ ...T.meta, fontWeight: 500, fontFamily: font, color, background: bg, padding: "2px 8px", borderRadius: 4 }}>{text}</span>
 );
 const Btn = ({ children, primary, onClick, small, style: s }) => (
-  <button onClick={onClick} style={{ padding: small ? "5px 11px" : "8px 16px", border: primary ? "none" : `1px solid ${C.border}`, background: primary ? C.sage : "transparent", color: primary ? C.bg : C.fg2, borderRadius: 6, fontSize: small ? "0.84rem" : "0.92rem", lineHeight: 1.2, fontWeight: 500, cursor: "pointer", fontFamily: mono, ...s }}>{children}</button>
+  <button onClick={onClick} style={{ padding: small ? "5px 11px" : "8px 16px", border: primary ? "none" : `1px solid ${C.border}`, background: primary ? C.sage : "transparent", color: primary ? C.bg : C.fg2, borderRadius: 6, fontSize: small ? "0.84rem" : "0.92rem", lineHeight: 1.2, fontWeight: 500, cursor: "pointer", fontFamily: font, ...s }}>{children}</button>
 );
-const Badge = ({ n, color }) => n > 0 ? <span style={{ ...T.meta, fontWeight: 600, fontFamily: mono, background: color, color: C.bg, borderRadius: 10, padding: "1px 6px" }}>{n}</span> : null;
+const Badge = ({ n, color }) => n > 0 ? <span style={{ ...T.meta, fontWeight: 600, fontFamily: font, background: color, color: C.bg, borderRadius: 10, padding: "1px 6px" }}>{n}</span> : null;
 const Label = ({ children }) => (
-  <div style={{ ...T.eyebrow, fontFamily: mono, color: C.fg3, textTransform: "uppercase", marginBottom: 6 }}>{children}</div>
+  <div style={{ ...T.eyebrow, fontFamily: font, fontWeight: 600, letterSpacing: "0.04em", color: C.fg3, marginBottom: 6 }}>{children}</div>
 );
 
 const rooms = [
@@ -111,8 +111,8 @@ function CaseSpace({ nav }) {
         </div>
         <div style={{ flex: 1, padding: "6px 0", overflowY: "auto" }}>
           {rooms.map((r, i) => (
-            <div key={i} onClick={() => setRoom(i)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 14px", cursor: "pointer", background: room === i ? C.s2 : "transparent", borderLeft: room === i ? `2px solid ${r.color}` : "2px solid transparent" }}>
-              <r.icon size={12} style={{ flexShrink: 0 }} />
+            <div key={i} onClick={() => setRoom(i)} style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 8px 4px", padding: "8px 10px", cursor: "pointer", background: room === i ? `color-mix(in oklch, ${r.color} 8%, ${C.s2})` : "transparent", border: room === i ? `1px solid color-mix(in oklch, ${r.color} 24%, ${C.border})` : "1px solid transparent", borderRadius: 8 }}>
+                <r.icon size={14} style={{ flexShrink: 0 }} />
               <span style={{ ...T.label, color: room === i ? C.fg : C.fg2, flex: 1, fontWeight: room === i ? 500 : 400 }}>{r.name}</span>
               <Badge n={r.unread} color={r.color} />
             </div>
@@ -170,7 +170,7 @@ function Timeline() {
         <div style={{ position: "absolute", left: 6, top: 3, bottom: 3, width: 2, background: C.border }} />
         {timelineEvents.map((e, i) => (
           <div key={i} style={{ marginBottom: 14, position: "relative" }}>
-            <div style={{ position: "absolute", left: -17, top: 3, width: 10, height: 10, borderRadius: "50%", background: e.current ? C.sage : e.done ? C.s3 : C.s1, border: `2px solid ${e.current ? C.sage : e.done ? C.fg3 : C.border}`, boxShadow: e.current ? `0 0 0 3px ${C.sage}33` : "none" }} />
+            <div style={{ position: "absolute", left: -17, top: 3, width: 10, height: 10, borderRadius: "50%", background: e.current ? C.sage : e.done ? C.s3 : C.s1, border: `2px solid ${e.current ? C.sage : e.done ? C.fg3 : C.border}` }} />
             <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
               <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, minWidth: 48 }}>{e.date}</span>
               <span style={{ ...T.bodySm, fontWeight: e.current ? 600 : 400, color: e.done ? C.fg2 : e.current ? C.fg : C.fg3 }}>{e.label}</span>
@@ -246,7 +246,7 @@ function CalendarView() {
         <div key={i} style={{ marginBottom: 14 }}>
           <div style={{ ...T.label, fontWeight: 600, color: C.fg, marginBottom: 6, fontFamily: mono }}>{d.day}</div>
           {d.items.map((a, j) => (
-            <div key={j} style={{ display: "flex", gap: 12, padding: "8px 12px", marginBottom: 3, background: C.s1, borderRadius: 5, borderLeft: `3px solid ${a.c}` }}>
+            <div key={j} style={{ display: "flex", gap: 12, padding: "8px 12px", marginBottom: 3, background: `color-mix(in oklch, ${a.c} 6%, ${C.s1})`, borderRadius: 5, border: `1px solid color-mix(in oklch, ${a.c} 22%, ${C.border})` }}>
               <span style={{ ...T.meta, fontFamily: mono, color: C.fg3, minWidth: 42 }}>{a.t}</span>
               <div>
                 <div style={{ ...T.bodySm, color: C.fg }}>{a.n}</div>
@@ -256,7 +256,7 @@ function CalendarView() {
           ))}
         </div>
       ))}
-      <div style={{ background: C.s1, padding: 10, borderRadius: 6, marginTop: 4, borderLeft: `3px solid ${C.fg3}` }}>
+      <div style={{ background: C.s1, padding: 10, borderRadius: 6, marginTop: 4, border: `1px solid ${C.border}` }}>
         <div style={{ ...T.bodySm, color: C.fg2, fontStyle: "italic" }}>"Kan inte resa måndag — behöver skjuts. Alla tisdag på Karolinska om möjligt."</div>
       </div>
     </div>
@@ -266,6 +266,7 @@ function CalendarView() {
 /* ─── 5. MDT-SAMMANFATTNING ─── */
 function MDTSummary() {
   const [approved, setApproved] = useState(false);
+  const [confirmPublish, setConfirmPublish] = useState(false);
   return (
     <div style={{ padding: "24px 20px", maxWidth: 560, margin: "0 auto" }}>
       <div style={{ marginBottom: 20 }}>
@@ -300,7 +301,13 @@ function MDTSummary() {
         </div>
         <p style={{ ...T.body, color: C.fg2, fontStyle: "italic", margin: "0 0 12px", maxWidth: "62ch" }}>{mdtData.patientSv}</p>
         {!approved
-          ? <Btn primary onClick={() => setApproved(true)}>Godkänn &amp; publicera</Btn>
+          ? confirmPublish
+            ? <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                <span style={{ ...T.bodySm, color: C.fg2 }}>Publiceras i patientportalen. Bekräfta?</span>
+                <Btn primary onClick={() => { setApproved(true); setConfirmPublish(false); }}>Ja, publicera</Btn>
+                <Btn onClick={() => setConfirmPublish(false)}>Avbryt</Btn>
+              </div>
+            : <Btn primary onClick={() => setConfirmPublish(true)}>Godkänn &amp; publicera</Btn>
           : <div style={{ ...T.meta, fontFamily: mono, color: C.sage }}>✓ Godkänd av Dr. Bergström · Publicerad i portalen</div>}
       </div>
     </div>
@@ -312,7 +319,7 @@ function PatientPortal() {
   const lb = "oklch(96% 0.008 55)";
   const lt = "oklch(20% 0.01 55)";
   const lt2 = "oklch(45% 0.01 55)";
-  const card = { background: "oklch(99% 0.006 55)", borderRadius: 10, padding: 14, marginBottom: 10, boxShadow: C.shadowSm };
+  const card = { background: "oklch(99% 0.006 55)", borderRadius: 10, padding: 14, marginBottom: 10, border: `1px solid ${C.border}` };
   return (
     <div style={{ background: lb, minHeight: "100%", color: lt }}>
       <div style={{ maxWidth: 440, margin: "0 auto", padding: "20px 14px" }}>
@@ -321,31 +328,31 @@ function PatientPortal() {
             <div style={{ fontSize: "1.45rem", lineHeight: 1.2, fontWeight: 600 }}>Hej Erik</div>
             <div style={{ ...T.label, color: lt2 }}>Din vårdöversikt</div>
           </div>
-          <div style={{ ...T.meta, fontFamily: mono, padding: "3px 8px", background: "oklch(90% 0.03 155)", color: "oklch(35% 0.1 155)", borderRadius: 16 }}>BankID ✓</div>
+          <div style={{ ...T.meta, fontFamily: font, padding: "3px 8px", background: "oklch(90% 0.03 155)", color: "oklch(35% 0.1 155)", borderRadius: 16 }}>BankID ✓</div>
         </div>
         <div style={card}>
-          <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Närmast i planen</div>
+          <div style={{ ...T.label, fontWeight: 600, color: lt2, marginBottom: 8 }}>Närmast i planen</div>
           <div style={{ fontSize: "1.08rem", lineHeight: 1.3, fontWeight: 600 }}>Strålbehandling (14/33)</div>
           <div style={{ ...T.body, color: lt2 }}>Tis 25 mars kl. 10:00 · Karolinska Solna</div>
           <div style={{ ...T.bodySm, color: lt2, marginTop: 6, padding: "6px 8px", background: lb, borderRadius: 5, display: "flex", alignItems: "center", gap: 6 }}><Lightbulb size={14} />Dietistbesök samma dag 14:00</div>
         </div>
         <div style={card}>
-          <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Vecka 13 — 5 besök</div>
+          <div style={{ ...T.label, fontWeight: 600, color: lt2, marginBottom: 8 }}>Den här veckan</div>
           {["Mån: Sårvård 08:30 — Södersjukhuset", "Tis: Strålning + Dietist — Karolinska", "Ons: Sårvård + Logoped — 2 platser", "Tor: Strålning — Karolinska", "Fre: Sårvård + Plastik + Tand — 3 platser"].map((d, i, arr) => (
             <div key={i} style={{ ...T.bodySm, color: lt2, padding: "4px 0", borderBottom: i < arr.length - 1 ? "1px solid oklch(92% 0.005 55)" : "none" }}>{d}</div>
           ))}
-          <button style={{ width: "100%", marginTop: 8, padding: 7, background: lb, border: "none", borderRadius: 5, ...T.bodySm, color: lt2, cursor: "pointer", fontFamily: font }}>Be om hjälp med tider →</button>
+          <button style={{ width: "100%", marginTop: 8, padding: 7, background: lb, border: `1px solid ${C.border}`, borderRadius: 5, ...T.bodySm, color: lt2, cursor: "pointer", fontFamily: font }}>Be om hjälp med tider →</button>
         </div>
         <div style={card}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase" }}>Senaste teamuppdatering</div>
-            <div style={{ ...T.meta, fontFamily: mono, color: "oklch(35% 0.1 155)", background: "oklch(90% 0.03 155)", padding: "1px 6px", borderRadius: 3 }}>Godkänd av Dr. Bergström</div>
+            <div style={{ ...T.label, fontWeight: 600, color: lt2 }}>Senaste teamuppdatering</div>
+            <div style={{ ...T.meta, fontFamily: font, color: "oklch(35% 0.1 155)", background: "oklch(90% 0.03 155)", padding: "1px 6px", borderRadius: 3 }}>Godkänd</div>
           </div>
           <p style={{ ...T.body, margin: "0 0 10px", color: "oklch(30% 0.01 55)", maxWidth: "34ch" }}>{mdtData.patientSv}</p>
-          <button style={{ padding: "6px 12px", background: lb, border: "none", borderRadius: 5, ...T.bodySm, color: lt2, cursor: "pointer", fontFamily: font }}>Ställ en fråga →</button>
+          <button style={{ padding: "6px 12px", background: lb, border: `1px solid ${C.border}`, borderRadius: 5, ...T.bodySm, color: lt2, cursor: "pointer", fontFamily: font }}>Ställ en fråga →</button>
         </div>
         <div style={card}>
-          <div style={{ ...T.eyebrow, fontFamily: font, color: lt2, textTransform: "uppercase", marginBottom: 8 }}>Hur kan vi hjälpa dig?</div>
+          <div style={{ ...T.label, fontWeight: 600, color: lt2, marginBottom: 8 }}>Vanliga ärenden</div>
           {[
             { icon: CalendarClock, label: "Jag behöver ändra en tid" },
             { icon: Bandage, label: "Jag vill rapportera symtom" },
@@ -512,8 +519,11 @@ function DICOMViewer() {
             { author: "Dr. Johansson", text: "Markera pedikelfäste för lambåplanering", slice: 112, color: C.blue },
             { author: "Dr. Eriksson", text: "Tandrötter i resektionszon — bekräfta extraktionsplan", slice: 78, color: C.amber },
           ].map((a, i) => (
-            <div key={i} style={{ padding: 8, marginBottom: 6, background: C.s2, borderRadius: 5, borderLeft: `2px solid ${a.color}`, cursor: "pointer" }}>
-              <div style={{ ...T.meta, fontWeight: 500, color: C.fg }}>{a.author}</div>
+            <div key={i} style={{ padding: 8, marginBottom: 6, background: C.s2, borderRadius: 5, cursor: "pointer" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: a.color, flexShrink: 0 }} />
+                <div style={{ ...T.meta, fontWeight: 500, color: C.fg }}>{a.author}</div>
+              </div>
               <div style={{ ...T.meta, color: C.fg2, marginTop: 2, lineHeight: 1.45 }}>{a.text}</div>
               <div style={{ ...T.meta, fontFamily: mono, color: C.fg3, marginTop: 3 }}>Snitt {a.slice}</div>
             </div>
@@ -629,24 +639,19 @@ function Whiteboard() {
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
             {collaborators.map((collaborator) => (
-              <div key={collaborator.name} className="presence-chip" style={{ border: `1px solid ${collaborator.color}3d`, background: `color-mix(in oklch, ${collaborator.color} 10%, ${C.s1})`, color: C.fg2, borderRadius: 999, padding: "4px 10px", display: "flex", alignItems: "center", gap: 6, ...T.meta, fontFamily: mono }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: collaborator.color, boxShadow: `0 0 12px ${collaborator.color}` }} />
-                {collaborator.note}
+              <div key={collaborator.name} className="presence-chip" style={{ border: `1px solid ${collaborator.color}3d`, background: `color-mix(in oklch, ${collaborator.color} 10%, ${C.s1})`, color: C.fg2, borderRadius: 999, padding: "4px 10px", display: "flex", alignItems: "center", gap: 6, ...T.meta, fontFamily: font }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: collaborator.color }} />
+                {collaborator.name}
               </div>
             ))}
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          {["Dr. B", "Dr. J", "Dr. E"].map((u, i) => (
-            <div key={i} style={{ width: 22, height: 22, borderRadius: "50%", background: [C.sage, C.blue, C.amber][i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: C.bg, fontWeight: 700, marginLeft: i > 0 ? -6 : 0, border: `2px solid ${C.ink}` }}>{u.slice(-1)}</div>
-          ))}
-          <span style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>3 aktiva</span>
-          </div>
+          <span style={{ ...T.meta, fontFamily: font, color: C.fg3 }}>3 redigerar just nu</span>
         </div>
       </div>
       <div className="whiteboard-layout" style={{ display: "flex", flex: 1, overflow: "hidden", minWidth: 0 }}>
         <div className="whiteboard-toolbar" style={{ width: 48, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", alignItems: "center", padding: "8px 0", gap: 2 }}>
           {drawTools.map(t => (
-            <button key={t.id} className="whiteboard-tool" aria-label={`Välj verktyg ${t.id}`} onClick={() => setActiveTool(t.id)} style={{ width: 44, height: 44, border: "none", borderRadius: 6, cursor: "pointer", background: activeTool === t.id ? C.s3 : "transparent", color: activeTool === t.id ? C.fg : C.fg3, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: activeTool === t.id ? `0 12px 32px color-mix(in oklch, ${penColor} 16%, transparent)` : "none" }}><t.icon size={14} /></button>
+            <button key={t.id} className="whiteboard-tool" aria-label={`Välj verktyg ${t.id}`} onClick={() => setActiveTool(t.id)} style={{ width: 44, height: 44, border: "none", borderRadius: 6, cursor: "pointer", background: activeTool === t.id ? C.s3 : "transparent", color: activeTool === t.id ? C.fg : C.fg3, fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center" }}><t.icon size={14} /></button>
           ))}
           <div style={{ flex: 1 }} />
           <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingBottom: 6 }}>
@@ -662,7 +667,7 @@ function Whiteboard() {
             onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw}
             style={{ position: "relative", zIndex: 1, width: "100%", height: "100%", cursor: activeTool === "pen" ? "crosshair" : activeTool === "move" ? "grab" : "default" }}
           />
-          <div className="whiteboard-grid" style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none", opacity: 0.72, backgroundImage: `linear-gradient(to right, color-mix(in oklch, ${C.fg3} 22%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklch, ${C.fg3} 22%, transparent) 1px, transparent 1px), radial-gradient(circle at top, color-mix(in oklch, ${penColor} 14%, transparent), transparent 54%)`, backgroundSize: "40px 40px, 40px 40px, 100% 100%" }} />
+          <div className="whiteboard-grid" style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none", opacity: 0.72, backgroundImage: `linear-gradient(to right, color-mix(in oklch, ${C.fg3} 22%, transparent) 1px, transparent 1px), linear-gradient(to bottom, color-mix(in oklch, ${C.fg3} 22%, transparent) 1px, transparent 1px)`, backgroundSize: "40px 40px" }} />
           {collaborators.map((collaborator) => (
             <div
               key={collaborator.name}
@@ -677,15 +682,15 @@ function Whiteboard() {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: collaborator.color, boxShadow: `0 0 18px ${collaborator.color}` }} />
-                <div style={{ padding: "5px 8px", borderRadius: 999, background: "color-mix(in oklch, oklch(10% 0.005 55) 82%, transparent)", border: `1px solid ${collaborator.color}44`, color: C.fg, ...T.meta, fontFamily: mono, whiteSpace: "nowrap" }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: collaborator.color }} />
+                <div style={{ padding: "5px 8px", borderRadius: 999, background: C.s1, border: `1px solid ${C.border}`, color: C.fg2, ...T.meta, fontFamily: mono, whiteSpace: "nowrap" }}>
                   {collaborator.name}
                 </div>
               </div>
             </div>
           ))}
-          <div style={{ position: "absolute", right: 14, bottom: 14, zIndex: 3, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 999, background: "color-mix(in oklch, oklch(10% 0.005 55) 82%, transparent)", border: `1px solid ${penColor}44`, boxShadow: `0 18px 48px color-mix(in oklch, ${penColor} 12%, transparent)` }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: penColor, boxShadow: `0 0 12px ${penColor}` }} />
+          <div style={{ position: "absolute", right: 14, bottom: 14, zIndex: 3, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 999, background: C.s1, border: `1px solid ${C.border}` }}>
+            <span style={{ width: 8, height: 8, borderRadius: "50%", background: penColor }} />
             <span style={{ ...T.meta, color: C.fg2, fontFamily: mono }}>Live-skiss synkad med konferensen</span>
           </div>
         </div>
@@ -880,15 +885,15 @@ function ORLayout() {
             <div style={{ position: "absolute", top: "30%", right: -2, width: 4, height: "15%", background: C.sage, borderRadius: 2 }} />
           </div>
           {phaseZones[phase].map((zone) => (
-            <div key={zone.label} className="or-zone" style={{ position: "absolute", top: zone.top, left: zone.left, width: zone.width, height: zone.height, borderRadius: 18, background: `color-mix(in oklch, ${zone.color} 10%, transparent)`, border: `1px solid ${zone.color}33`, boxShadow: `inset 0 0 0 1px color-mix(in oklch, ${zone.color} 24%, transparent), 0 18px 40px color-mix(in oklch, ${zone.color} 12%, transparent)` }}>
+            <div key={zone.label} className="or-zone" style={{ position: "absolute", top: zone.top, left: zone.left, width: zone.width, height: zone.height, borderRadius: 18, background: `color-mix(in oklch, ${zone.color} 8%, transparent)`, border: `1px solid ${zone.color}33` }}>
               <div style={{ position: "absolute", top: -12, left: 14, padding: "3px 10px", borderRadius: 999, background: C.bg, border: `1px solid ${zone.color}44`, color: zone.color, ...T.meta, fontFamily: mono }}>{zone.label}</div>
             </div>
           ))}
-          <div style={{ position: "absolute", top: 20, right: 24, padding: "6px 10px", borderRadius: 999, background: "color-mix(in oklch, oklch(13% 0.008 55) 86%, transparent)", border: `1px solid ${C.mauve}33`, color: C.fg2, ...T.meta, fontFamily: mono }}>
+          <div style={{ position: "absolute", top: 20, right: 24, padding: "6px 10px", borderRadius: 999, background: C.s2, border: `1px solid ${C.border}`, color: C.fg3, ...T.meta, fontFamily: mono }}>
             Dra utrustning för att testa flödet live
           </div>
           {items.map(item => (
-            <div key={item.id} className="or-item" onMouseDown={(e) => handleMouseDown(e, item.id)} onTouchStart={(e) => handleMouseDown(e, item.id)} style={{ position: "absolute", left: item.x, top: item.y, width: item.w, height: item.h, background: phaseFocusItems[phase].includes(item.id) ? `color-mix(in oklch, ${item.color} 16%, ${C.s1})` : `${item.color}12`, border: `1.5px solid ${item.color}55`, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", cursor: "grab", userSelect: "none", touchAction: "none", boxShadow: dragging === item.id ? `0 0 0 2px ${item.color}, 0 20px 40px color-mix(in oklch, ${item.color} 18%, transparent)` : phaseFocusItems[phase].includes(item.id) ? `0 0 0 1px color-mix(in oklch, ${item.color} 35%, transparent), 0 16px 32px color-mix(in oklch, ${item.color} 12%, transparent)` : "none", transform: phaseFocusItems[phase].includes(item.id) ? "scale(1.03)" : "scale(1)", transition: dragging === item.id ? "none" : "transform 180ms ease, box-shadow 180ms ease, background 180ms ease", padding: 4 }}>
+            <div key={item.id} className="or-item" onMouseDown={(e) => handleMouseDown(e, item.id)} onTouchStart={(e) => handleMouseDown(e, item.id)} style={{ position: "absolute", left: item.x, top: item.y, width: item.w, height: item.h, background: phaseFocusItems[phase].includes(item.id) ? `color-mix(in oklch, ${item.color} 16%, ${C.s1})` : `${item.color}12`, border: `1.5px solid ${item.color}55`, borderRadius: 10, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", cursor: "grab", userSelect: "none", touchAction: "none", boxShadow: dragging === item.id ? `0 0 0 2px ${item.color}` : "none", transform: phaseFocusItems[phase].includes(item.id) ? "scale(1.03)" : "scale(1)", transition: dragging === item.id ? "none" : "transform 180ms ease, box-shadow 180ms ease, background 180ms ease", padding: 4 }}>
               <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", width: "100%" }}>
                 {renderAssetShape(item)}
               </div>
@@ -903,7 +908,7 @@ function ORLayout() {
           <div style={{ display: "grid", gap: 8, marginBottom: 16 }}>
             {phaseChecklist[phase].map((item) => (
               <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "8px 10px", borderRadius: 8, background: C.s2 }}>
-                <span style={{ width: 8, height: 8, marginTop: 6, borderRadius: "50%", background: C.mauve, boxShadow: `0 0 10px ${C.mauve}` }} />
+                <span style={{ width: 8, height: 8, marginTop: 6, borderRadius: "50%", background: C.mauve }} />
                 <span style={{ ...T.meta, color: C.fg2 }}>{item}</span>
               </div>
             ))}
@@ -932,67 +937,66 @@ const toolScreens = [
   { id: "or-layout", label: "OR-layout", icon: LayoutDashboard },
 ];
 
-const screenSequence = [...primaryScreens, ...toolScreens];
 const careflowMeta = {
   space: {
     phase: "Samordning",
     cue: "Teamet knyter ihop beslut, bildunderlag och praktiska steg.",
     accent: C.sage,
-    glow: "radial-gradient(circle at 18% 0%, color-mix(in oklch, oklch(65% 0.1 155) 22%, transparent), transparent 44%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 155) 8%, transparent), transparent 70%)",
+    glow: "none",
   },
   timeline: {
     phase: "Förlopp",
     cue: "Alla kritiska milstolpar syns i ett enda vårdflöde.",
     accent: C.blue,
-    glow: "radial-gradient(circle at 50% 0%, color-mix(in oklch, oklch(65% 0.12 245) 18%, transparent), transparent 48%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.12 245) 9%, transparent), transparent 70%)",
+    glow: "none",
   },
   consult: {
     phase: "Bedömning",
     cue: "Frågor skickas med rätt kliniskt sammanhang från start.",
     accent: C.amber,
-    glow: "radial-gradient(circle at 72% 0%, color-mix(in oklch, oklch(72% 0.14 75) 20%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(72% 0.14 75) 9%, transparent), transparent 72%)",
+    glow: "none",
   },
   calendar: {
     phase: "Koordinering",
     cue: "Besök, behandling och stöd hålls ihop utan kollisioner.",
     accent: C.mauve,
-    glow: "radial-gradient(circle at 18% 0%, color-mix(in oklch, oklch(65% 0.1 310) 18%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 310) 8%, transparent), transparent 72%)",
+    glow: "none",
   },
   mdt: {
     phase: "Beslut",
     cue: "MDT-beslut förankras med tydlig ansvarsfördelning.",
     accent: C.sage,
-    glow: "radial-gradient(circle at 82% 0%, color-mix(in oklch, oklch(65% 0.1 155) 18%, transparent), transparent 44%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 155) 8%, transparent), transparent 72%)",
+    glow: "none",
   },
   portal: {
     phase: "Patientkontakt",
     cue: "Patienten möter samma plan i ett lugnare, tryggare tonläge.",
     accent: C.rose,
-    glow: "radial-gradient(circle at 22% 0%, color-mix(in oklch, oklch(65% 0.12 15) 20%, transparent), transparent 40%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.12 15) 8%, transparent), transparent 72%)",
+    glow: "none",
   },
   conference: {
     phase: "Live-konferens",
     cue: "Diskussion, skärmdelning och beslut sker i samma rytm.",
     accent: C.sage,
-    glow: "radial-gradient(circle at 50% 0%, color-mix(in oklch, oklch(65% 0.1 155) 18%, transparent), transparent 44%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 155) 7%, transparent), transparent 74%)",
+    glow: "none",
   },
   viewer: {
     phase: "Bildgranskning",
     cue: "Bildserier, mått och kommentarer hålls nära diskussionen.",
     accent: C.blue,
-    glow: "radial-gradient(circle at 80% 0%, color-mix(in oklch, oklch(65% 0.12 245) 20%, transparent), transparent 46%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.12 245) 8%, transparent), transparent 74%)",
+    glow: "none",
   },
   whiteboard: {
     phase: "Kirurgisk skiss",
     cue: "Flera specialister kan markera, reagera och orientera sig samtidigt.",
     accent: C.amber,
-    glow: "radial-gradient(circle at 25% 0%, color-mix(in oklch, oklch(72% 0.14 75) 20%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(72% 0.14 75) 7%, transparent), transparent 74%)",
+    glow: "none",
   },
   "or-layout": {
     phase: "OR-koreografi",
     cue: "Bemanning, utrustning och fasbyten kan testas visuellt innan start.",
     accent: C.mauve,
-    glow: "radial-gradient(circle at 78% 0%, color-mix(in oklch, oklch(65% 0.1 310) 18%, transparent), transparent 42%), linear-gradient(180deg, color-mix(in oklch, oklch(65% 0.1 310) 7%, transparent), transparent 74%)",
+    glow: "none",
   },
 };
 
@@ -1001,11 +1005,10 @@ export default function App() {
   const [showTools, setShowTools] = useState(false);
   const isToolScreen = toolScreens.some(s => s.id === screen);
   const activeMeta = careflowMeta[screen];
-  const activeIndex = screenSequence.findIndex((entry) => entry.id === screen);
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative", overflow: "hidden" }}>
-      <div className="app-shell-ambient" style={{ position: "absolute", inset: 0, pointerEvents: "none", background: activeMeta.glow, opacity: 1 }} />
-      <nav className="app-nav" style={{ height: 48, background: "color-mix(in oklch, oklch(16% 0.006 55) 88%, transparent)", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflow: "visible", position: "relative", zIndex: 1000, backdropFilter: "blur(16px)" }}>
+      <div className="app-shell-ambient" style={{ display: "none" }} />
+      <nav className="app-nav" style={{ height: 48, background: `color-mix(in oklch, ${C.bg} 94%, transparent)`, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflow: "visible", position: "relative", zIndex: 1000, backdropFilter: "blur(16px)" }}>
         <div style={{ fontSize: "0.98rem", lineHeight: 1.2, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap" }}>
           <span style={{ color: C.sage }}>●</span> CasePlatform
         </div>
@@ -1016,10 +1019,10 @@ export default function App() {
         ))}
         <div style={{ position: "relative", marginLeft: 4 }}>
           <button className={`app-nav-button${isToolScreen || showTools ? " is-active" : ""}`} onClick={() => setShowTools(v => !v)} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: isToolScreen || showTools ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: isToolScreen || showTools ? C.fg : C.fg3, fontSize: "0.9rem", lineHeight: 1.2, fontFamily: font, whiteSpace: "nowrap" }}>
-            Verktyg <ChevronDown size={13} style={{ verticalAlign: "middle" }} />
+            Samarbeta <ChevronDown size={13} style={{ verticalAlign: "middle" }} />
           </button>
           {showTools && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.s2, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 2000, minWidth: 160, boxShadow: `0 20px 48px color-mix(in oklch, ${activeMeta.accent} 12%, transparent)` }}>
+            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 2000, minWidth: 160, boxShadow: C.shadowSm }}>
               {toolScreens.map(s => (
                 <button key={s.id} onClick={() => { setScreen(s.id); setShowTools(false); }} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.9rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
                   <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 6 }} />{s.label}
@@ -1029,20 +1032,12 @@ export default function App() {
           )}
         </div>
       </nav>
-      <div className="careflow-ribbon" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 16, alignItems: "center", padding: "12px 16px 14px", borderBottom: `1px solid color-mix(in oklch, ${activeMeta.accent} 18%, ${C.border})`, background: "color-mix(in oklch, oklch(13% 0.008 55) 88%, transparent)", backdropFilter: "blur(16px)" }}>
+      <div className="careflow-ribbon" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, alignItems: "center", padding: "12px 16px 14px", borderBottom: `1px solid ${C.border}`, background: C.s1 }}>
         <div style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-            <span style={{ ...T.eyebrow, color: activeMeta.accent, fontFamily: mono, textTransform: "uppercase" }}>Fas · {activeMeta.phase}</span>
+            <span style={{ ...T.eyebrow, color: activeMeta.accent, fontFamily: font, fontWeight: 600 }}>Fas: {activeMeta.phase}</span>
             <span style={{ ...T.bodySm, color: C.fg2 }}>{activeMeta.cue}</span>
           </div>
-        </div>
-        <div className="careflow-track" style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-          {screenSequence.map((entry, index) => (
-            <div key={entry.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ width: index === activeIndex ? 22 : 8, height: 8, borderRadius: 999, background: index <= activeIndex ? activeMeta.accent : C.border, boxShadow: index === activeIndex ? `0 0 22px ${activeMeta.accent}` : "none", transition: "width 220ms ease, background 220ms ease, box-shadow 220ms ease" }} />
-              {index < screenSequence.length - 1 && <span style={{ width: 12, height: 1, background: index < activeIndex ? activeMeta.accent : C.border, opacity: 0.7 }} />}
-            </div>
-          ))}
         </div>
       </div>
       <style>{`
@@ -1051,20 +1046,7 @@ export default function App() {
           100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
         }
 
-        @keyframes careflowDrift {
-          0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-          50% { transform: translate3d(0, -1.2%, 0) scale(1.02); }
-        }
-
-        @keyframes presencePulse {
-          0%, 100% { transform: translate3d(0, 0, 0); opacity: 0.8; }
-          50% { transform: translate3d(0, -4px, 0); opacity: 1; }
-        }
-
         .app-nav::-webkit-scrollbar { display: none; }
-        .app-shell-ambient {
-          animation: careflowDrift 12s ease-in-out infinite;
-        }
 
         .app-nav-button {
           position: relative;
@@ -1076,7 +1058,7 @@ export default function App() {
         }
 
         .app-nav-button.is-active {
-          box-shadow: 0 12px 32px color-mix(in oklch, ${activeMeta.accent} 14%, transparent);
+          font-weight: 600;
         }
 
         .careflow-stage {
@@ -1085,18 +1067,8 @@ export default function App() {
           z-index: 1;
         }
 
-        .whiteboard-grid {
-          animation: careflowDrift 14s ease-in-out infinite;
-        }
-
-        .presence-cursor,
-        .presence-chip {
-          animation: presencePulse 3.6s ease-in-out infinite;
-        }
-
         .or-zone {
           pointer-events: none;
-          animation: presencePulse 5.5s ease-in-out infinite;
         }
 
         .or-item,
