@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, BarChart2, ClipboardList, CalendarDays, Users, User, Video, Microscope, PenLine, LayoutDashboard, Stethoscope, Activity, Scan, Bone, MessageCircle, Pill, Mic, MicOff, Monitor, Disc, PhoneOff, Hand, ZoomIn, Sun, Ruler, Pencil, Circle, Square, Type, ArrowUpRight, Eraser, Move, ChevronDown, Lightbulb, CalendarClock, Bandage, HelpCircle, Car, ExternalLink } from "lucide-react";
+import { MessageSquare, BarChart2, ClipboardList, CalendarDays, Users, User, Video, Microscope, PenLine, LayoutDashboard, Stethoscope, Activity, Scan, Bone, MessageCircle, Pill, Mic, MicOff, Monitor, Disc, PhoneOff, Hand, ZoomIn, Sun, Ruler, Pencil, Circle, Square, Type, ArrowUpRight, Eraser, Move, ChevronDown, Lightbulb, CalendarClock, Bandage, HelpCircle, Car, ExternalLink, Camera, X, Check, AlertCircle, Loader2 } from "lucide-react";
 
 const C = {
   bg: "oklch(98% 0.004 55)", s1: "oklch(96% 0.005 55)", s2: "oklch(93% 0.007 55)", s3: "oklch(88% 0.008 55)",
@@ -38,6 +38,92 @@ const Label = ({ children }) => (
   <div style={{ ...T.eyebrow, fontFamily: font, fontWeight: 600, letterSpacing: "0.04em", color: C.fg3, marginBottom: 6 }}>{children}</div>
 );
 
+const EMR_STATUS = {
+  pending:       { label: "Ej skickat till EMR",       color: C.amber, bg: C.amberBg, Icon: null },
+  awaiting_auth: { label: "Inväntar SITHS-signering…", color: C.blue,  bg: C.blueBg,  Icon: Loader2 },
+  uploading:     { label: "Laddar upp…",               color: C.blue,  bg: C.blueBg,  Icon: Loader2 },
+  uploaded:      { label: "Skickat till EMR",          color: C.sage,  bg: C.sageBg,  Icon: Check },
+  failed:        { label: "Misslyckades — försök igen", color: C.rose,  bg: C.roseBg,  Icon: AlertCircle },
+};
+
+function ClinicalCaptureCard({ capture, liveStatus, onSendToEMR }) {
+  const status = liveStatus || capture.emrStatus;
+  const s = EMR_STATUS[status] || EMR_STATUS.pending;
+  const canSend = status === "pending" || status === "failed";
+  const spinning = status === "awaiting_auth" || status === "uploading";
+  return (
+    <div style={{ background: C.s1, border: `1px solid ${C.border}`, borderRadius: 8, padding: 12, maxWidth: 420, display: "flex", gap: 12, alignItems: "flex-start" }}>
+      <div style={{ width: 72, height: 72, flexShrink: 0, background: C.s2, border: `1px solid ${C.border}`, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Camera size={20} color={C.fg3} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3, flexWrap: "wrap" }}>
+          <span style={{ ...T.label, fontWeight: 600, color: C.fg, fontFamily: font }}>{capture.bodySite}</span>
+          <span style={{ ...T.meta, fontFamily: font, fontWeight: 500, color: s.color, background: s.bg, padding: "1px 7px", borderRadius: 4, display: "inline-flex", alignItems: "center", gap: 4 }}>
+            {s.Icon && <s.Icon size={11} style={spinning ? { animation: "spin 1s linear infinite" } : {}} />}
+            {s.label}
+          </span>
+        </div>
+        <div style={{ ...T.meta, fontFamily: font, color: C.fg2, marginBottom: 3 }}>{capture.clinicalContext}</div>
+        {capture.note && <div style={{ ...T.meta, fontFamily: font, color: C.fg3, fontStyle: "italic", marginBottom: 6 }}>"{capture.note}"</div>}
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: canSend || status === "uploaded" ? 8 : 0 }}>
+          {capture.tags.map(t => <Tag key={t} text={t} color={C.fg3} bg={C.s2} />)}
+        </div>
+        {status === "uploaded" && capture.emrReference && (
+          <div style={{ ...T.meta, fontFamily: mono, color: C.sage }}>{capture.emrReference}</div>
+        )}
+        {canSend && <Btn small primary onClick={() => onSendToEMR(capture.id)}>Skicka till EMR</Btn>}
+      </div>
+    </div>
+  );
+}
+
+function CaptureCompose({ onClose }) {
+  const [bodySite, setBodySite] = useState("");
+  const [context, setContext] = useState("");
+  const [note, setNote] = useState("");
+  const inp = { padding: "7px 10px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: "1rem", lineHeight: 1.45, fontFamily: font, outline: "none", width: "100%", boxSizing: "border-box" };
+  return (
+    <div style={{ position: "absolute", inset: 0, background: "color-mix(in oklch, oklch(0% 0 0) 45%, transparent)", display: "flex", alignItems: "flex-end", justifyContent: "stretch", zIndex: 10 }} onClick={onClose}>
+      <div style={{ background: C.bg, borderRadius: "12px 12px 0 0", width: "100%", maxWidth: 480, margin: "0 auto", padding: 20 }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <span style={{ ...T.titleSm, fontWeight: 600, color: C.fg, fontFamily: font }}>Klinisk fotografering</span>
+          <button aria-label="Stäng" onClick={onClose} style={{ width: 32, height: 32, border: "none", background: C.s2, borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}><X size={15} color={C.fg2} /></button>
+        </div>
+        <div style={{ background: C.s2, border: `1px dashed ${C.border}`, borderRadius: 8, height: 160, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 16, color: C.fg3 }}>
+          <Camera size={28} />
+          <span style={{ ...T.meta, fontFamily: font }}>Kamera öppnas i mobilappen</span>
+          <span style={{ ...T.meta, fontFamily: font, fontSize: "0.78rem" }}>Bilden sparas aldrig lokalt på enheten</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+          <div>
+            <Label>Kroppsdel</Label>
+            <input aria-label="Kroppsdel" value={bodySite} onChange={e => setBodySite(e.target.value)} placeholder="t.ex. Mandibel — höger lateralt" style={inp} />
+          </div>
+          <div>
+            <Label>Kliniskt sammanhang</Label>
+            <input aria-label="Kliniskt sammanhang" value={context} onChange={e => setContext(e.target.value)} placeholder="t.ex. Preoperativ bedömning" style={inp} />
+          </div>
+          <div>
+            <Label>Anteckning (valfri)</Label>
+            <input aria-label="Anteckning" value={note} onChange={e => setNote(e.target.value)} placeholder="Fri text…" style={inp} />
+          </div>
+          <div style={{ background: C.amberBg, border: `1px solid color-mix(in oklch, ${C.amber} 30%, ${C.border})`, borderRadius: 6, padding: "8px 10px" }}>
+            <div style={{ ...T.meta, fontFamily: font, color: C.fg2 }}>
+              <span style={{ fontWeight: 600, color: C.amber }}>Patient: </span>{patient.name} · {patient.id}
+              <span style={{ color: C.fg3 }}> — från journalkontext</span>
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <Btn onClick={onClose}>Avbryt</Btn>
+          <Btn primary onClick={onClose}>Ta foto &amp; bifoga</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const rooms = [
   { icon: Stethoscope, name: "Kirurgplanering", unread: 3, color: C.sage },
   { icon: Activity, name: "Anestesi", unread: 0, color: C.blue },
@@ -49,11 +135,19 @@ const rooms = [
   { icon: CalendarDays, name: "Vårdsamordning", unread: 1, color: C.rose },
 ];
 
-const messages = [
-  { from: "Dr. A. Bergström", role: "H&H Kirurgi", time: "09:14", text: "CTA visar adekvat peroneal kärlkaliber bilateralt. Vänster sida föredras — bättre pedikellängd för denna defekt." },
-  { from: "Dr. K. Johansson", role: "Plastikkirurgi", time: "09:22", text: "Överens om vänster. 3D-modell beställd. Kan vi få DICOM till labbet idag?" },
-  { from: "Dr. M. Eriksson", role: "Maxillofacial", time: "09:31", text: "DICOM vidarebefordrat. Tandextraktioner i strålningsfältet måste göras först — lagt till i uppgiftstavlan, 2 veckors tidslinje." },
-  { from: "Dr. A. Bergström", role: "H&H Kirurgi", time: "09:45", text: "Bra noterat. Protetik behöver den kirurgiska planen innan extraktionerna. Skickar konsultation nu." },
+const allMessages = [
+  { type: "text", id: "m1", from: "Dr. A. Bergström", role: "H&H Kirurgi", time: "09:14", text: "CTA visar adekvat peroneal kärlkaliber bilateralt. Vänster sida föredras — bättre pedikellängd för denna defekt." },
+  { type: "text", id: "m2", from: "Dr. K. Johansson", role: "Plastikkirurgi", time: "09:22", text: "Överens om vänster. 3D-modell beställd. Kan vi få DICOM till labbet idag?" },
+  { type: "capture", id: "c1", from: "Dr. K. Johansson", role: "Plastikkirurgi", time: "09:26",
+    bodySite: "Mandibel — höger lateralt", clinicalContext: "Preoperativ bedömning",
+    note: "Residuell tumörvolym synlig. Jämförs med MRI 2026-02-03.",
+    tags: ["preop", "tumör", "mandibel"], emrStatus: "pending", mxc: "mxc://hospital.se/abc123" },
+  { type: "text", id: "m3", from: "Dr. M. Eriksson", role: "Maxillofacial", time: "09:31", text: "DICOM vidarebefordrat. Tandextraktioner i strålningsfältet måste göras först — lagt till i uppgiftstavlan, 2 veckors tidslinje." },
+  { type: "text", id: "m4", from: "Dr. A. Bergström", role: "H&H Kirurgi", time: "09:45", text: "Bra noterat. Protetik behöver den kirurgiska planen innan extraktionerna. Skickar konsultation nu." },
+  { type: "capture", id: "c2", from: "Ssk L. Strand", role: "H&H Kirurgi", time: "09:52",
+    bodySite: "Fibula — vänster lateralt", clinicalContext: "Donatorsite — kärlkaliber",
+    note: "God peronealkärlkaliber. Inga varianter observerade.",
+    tags: ["donator", "fibula", "kärl"], emrStatus: "uploaded", emrReference: "DocumentReference/6124", mxc: "mxc://hospital.se/def456" },
 ];
 
 const timelineEvents = [
@@ -102,9 +196,18 @@ const mdtData = {
 /* ─── 1. ÄRENDEYTA ─── */
 function CaseSpace({ nav }) {
   const [room, setRoom] = useState(0);
+  const [emrStatuses, setEmrStatuses] = useState({});
+  const [showCapture, setShowCapture] = useState(false);
   const RoomIcon = rooms[room].icon;
+
+  const handleSendToEMR = (captureId) => {
+    setEmrStatuses(s => ({ ...s, [captureId]: "awaiting_auth" }));
+    setTimeout(() => setEmrStatuses(s => ({ ...s, [captureId]: "uploading" })), 1800);
+    setTimeout(() => setEmrStatuses(s => ({ ...s, [captureId]: "uploaded" })), 3400);
+  };
+
   return (
-    <div className="case-space" style={{ display: "flex", height: "100%", minHeight: "calc(100vh - 48px)" }}>
+    <div className="case-space" style={{ display: "flex", height: "100%", minHeight: "calc(100vh - 48px)", position: "relative" }}>
       <div className="case-space-sidebar" style={{ width: 220, background: C.s1, borderRight: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
         <div style={{ padding: "12px 14px", borderBottom: `1px solid ${C.border}` }}>
           <div style={{ ...T.titleSm, fontWeight: 600, color: C.fg }}>{patient.name}</div>
@@ -113,7 +216,7 @@ function CaseSpace({ nav }) {
         <div style={{ flex: 1, padding: "6px 0", overflowY: "auto" }}>
           {rooms.map((r, i) => (
             <div key={i} onClick={() => setRoom(i)} style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 8px 4px", padding: "8px 10px", cursor: "pointer", background: room === i ? `color-mix(in oklch, ${r.color} 8%, ${C.s2})` : "transparent", border: room === i ? `1px solid color-mix(in oklch, ${r.color} 24%, ${C.border})` : "1px solid transparent", borderRadius: 8 }}>
-                <r.icon size={14} style={{ flexShrink: 0 }} />
+              <r.icon size={14} style={{ flexShrink: 0 }} />
               <span style={{ ...T.label, color: room === i ? C.fg : C.fg2, flex: 1, fontWeight: room === i ? 500 : 400 }}>{r.name}</span>
               <Badge n={r.unread} color={r.color} />
             </div>
@@ -123,18 +226,22 @@ function CaseSpace({ nav }) {
           <Btn onClick={() => nav("consult")} small style={{ width: "100%", textAlign: "left" }}>+ Konsultation</Btn>
         </div>
       </div>
+
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
         <div style={{ padding: "9px 16px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span style={{ ...T.label, fontWeight: 500, color: C.fg, display: "flex", alignItems: "center", gap: 6 }}><RoomIcon size={14} />{rooms[room].name} <span style={{ ...T.meta, ...dataText, color: C.fg3 }}>· 4 deltagare</span></span>
         </div>
         <div style={{ flex: 1, padding: 16, overflowY: "auto" }}>
-          {messages.map((m, i) => (
-            <div key={i} style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 3 }}>
-                <span style={{ ...T.label, fontWeight: 600, color: C.fg }}>{m.from}</span>
+          {allMessages.map((m) => (
+            <div key={m.id} style={{ marginBottom: 18 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
+                <span style={{ ...T.label, fontWeight: 600, color: C.fg, fontFamily: font }}>{m.from}</span>
                 <span style={{ ...T.meta, ...dataText, color: C.fg3 }}>{m.role} · {m.time}</span>
               </div>
-              <p style={{ ...T.body, color: C.fg2, margin: 0, maxWidth: "60ch" }}>{m.text}</p>
+              {m.type === "text"
+                ? <p style={{ ...T.body, color: C.fg2, margin: 0, maxWidth: "60ch" }}>{m.text}</p>
+                : <ClinicalCaptureCard capture={m} liveStatus={emrStatuses[m.id]} onSendToEMR={handleSendToEMR} />
+              }
             </div>
           ))}
           <div style={{ background: C.s2, border: `1px solid ${C.border}`, borderRadius: 6, padding: 12, maxWidth: 340, marginTop: 4 }}>
@@ -150,11 +257,20 @@ function CaseSpace({ nav }) {
             </div>
           </div>
         </div>
-        <div style={{ padding: "10px 16px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 8 }}>
+        <div style={{ padding: "10px 16px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 8, alignItems: "center" }}>
+          <button
+            aria-label="Klinisk fotografering"
+            onClick={() => setShowCapture(true)}
+            style={{ width: 36, height: 36, flexShrink: 0, border: `1px solid ${C.border}`, background: C.s1, borderRadius: 6, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            <Camera size={15} color={C.fg2} />
+          </button>
           <input aria-label={`Meddelande till ${rooms[room].name}`} placeholder={`Meddelande #${rooms[room].name.toLowerCase()}...`} style={{ flex: 1, minWidth: 0, padding: "8px 12px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: "1rem", lineHeight: 1.45, fontFamily: font, outline: "none" }} />
           <Btn primary>Skicka</Btn>
         </div>
       </div>
+
+      {showCapture && <CaptureCompose onClose={() => setShowCapture(false)} />}
     </div>
   );
 }
@@ -1080,6 +1196,8 @@ export default function App() {
         </div>
       </div>
       <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
         @keyframes careflowReveal {
           0% { opacity: 0; transform: translateY(18px) scale(0.985); filter: blur(10px); }
           100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
