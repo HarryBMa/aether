@@ -1,0 +1,24 @@
+# Matrix Application Service registration for the clinical capture service.
+# When running the capture service as a standalone sync-bot (not appservice),
+# this file is NOT needed — the service uses a regular user access token.
+#
+# Only register as an appservice if you want the homeserver to push events
+# to the service rather than the service polling /sync.
+#
+# To use: add this path to homeserver.yaml → app_service_config_files
+
+id: aether-clinical-capture
+url: http://capture:3400/matrix/appservice
+as_token: REPLACE_WITH_APPSERVICE_TOKEN
+hs_token: REPLACE_WITH_HOMESERVER_TOKEN
+sender_localpart: aether-capture-bot
+
+namespaces:
+  users:
+    - exclusive: false
+      regex: "@aether-capture-bot:.*"
+  aliases: []
+  rooms: []
+
+rate_limited: false
+protocols: []

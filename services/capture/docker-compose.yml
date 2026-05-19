@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+  capture:
+    build: .
+    image: aether/clinical-capture:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3400:3400"   # bind to loopback only; expose behind reverse proxy
+    volumes:
+      - capture-data:/data
+      - ./certs:/certs:ro       # mTLS certificates (FHIR + SITHS RP)
+    environment:
+      NODE_ENV: production
+      PORT: 3400
+      MATRIX_HOMESERVER_URL: ${MATRIX_HOMESERVER_URL}
+      MATRIX_ACCESS_TOKEN: ${MATRIX_ACCESS_TOKEN}
+      MATRIX_DEVICE_ID: ${MATRIX_DEVICE_ID:-CAPTURE_SERVICE}
+      MATRIX_SYNC_TIMEOUT_MS: ${MATRIX_SYNC_TIMEOUT_MS:-30000}
+      MATRIX_WATCHED_ROOMS: ${MATRIX_WATCHED_ROOMS:-}
+      FHIR_BASE_URL: ${FHIR_BASE_URL}
+      FHIR_CLIENT_CERT: ${FHIR_CLIENT_CERT:-/certs/fhir-client.pem}
+      FHIR_CLIENT_KEY: ${FHIR_CLIENT_KEY:-/certs/fhir-client-key.pem}
+      FHIR_CA_CERT: ${FHIR_CA_CERT:-/certs/fhir-ca.pem}
+      SITHS_VERIFY_URL: ${SITHS_VERIFY_URL}
+      SITHS_RP_CLIENT_CERT: ${SITHS_RP_CLIENT_CERT:-/certs/siths-rp.pem}
+      SITHS_RP_CLIENT_KEY: ${SITHS_RP_CLIENT_KEY:-/certs/siths-rp-key.pem}
+      SERVICE_API_KEY: ${SERVICE_API_KEY}
+      DB_PATH: /data/capture.db
+      AUDIT_LOG_PATH: /data/audit.ndjson
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3400/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  capture-data:
+    driver: local

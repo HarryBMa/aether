@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useContext, createContext } from "react";
 import { MessageSquare, BarChart2, ClipboardList, CalendarDays, Users, User, Video, Microscope, PenLine, LayoutDashboard, Stethoscope, Activity, Scan, Bone, MessageCircle, Pill, Mic, MicOff, Monitor, Disc, PhoneOff, Hand, ZoomIn, Sun, Ruler, Pencil, Circle, Square, Type, ArrowUpRight, Eraser, Move, ChevronDown, ChevronLeft, ChevronRight, Lightbulb, CalendarClock, Bandage, HelpCircle, Car, ExternalLink, Camera, X, Check, AlertCircle, Loader2, Bell, Shield, LogOut, FileText, Clock, Plus, Send, Search } from "lucide-react";
+import * as captureApi from "./services/captureApi.js";
 
 const AppCtx = createContext(null);
 
@@ -367,12 +368,27 @@ function CaseSpace({ nav }) {
   const [room, setRoom] = useState(0);
   const [emrStatuses, setEmrStatuses] = useState({});
   const [showCapture, setShowCapture] = useState(false);
+  const { authUser } = useContext(AppCtx);
   const RoomIcon = rooms[room].icon;
 
-  const handleSendToEMR = (captureId) => {
-    setEmrStatuses(s => ({ ...s, [captureId]: "awaiting_auth" }));
-    setTimeout(() => setEmrStatuses(s => ({ ...s, [captureId]: "uploading" })), 1800);
-    setTimeout(() => setEmrStatuses(s => ({ ...s, [captureId]: "uploaded" })), 3400);
+  const handleSendToEMR = async (captureId) => {
+    const set = (status) => setEmrStatuses(s => ({ ...s, [captureId]: status }));
+    set("awaiting_auth");
+    try {
+      // 1. Request step-up token — mobile client uses sithsDeepLink to trigger NFC card read
+      const { stepUpToken } = await captureApi.requestStepUp(captureId);
+      // 2. In production the SITHS RP posts back to /verify-step-up automatically.
+      //    For demo/dev mode fall back to a simulated auto-verify.
+      const verifyResult = await captureApi.verifyStepUp(captureId, stepUpToken).catch(() => null);
+      const hsaId = verifyResult?.hsaId ?? authUser?.id ?? "demo";
+      set("uploading");
+      // 3. Upload to EMR
+      await captureApi.uploadToEMR(captureId, hsaId);
+      set("uploaded");
+    } catch (err) {
+      console.error("EMR upload error", err);
+      set("failed");
+    }
   };
 
   return (
