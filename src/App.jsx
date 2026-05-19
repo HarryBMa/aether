@@ -1,5 +1,13 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, BarChart2, ClipboardList, CalendarDays, Users, User, Video, Microscope, PenLine, LayoutDashboard, Stethoscope, Activity, Scan, Bone, MessageCircle, Pill, Mic, MicOff, Monitor, Disc, PhoneOff, Hand, ZoomIn, Sun, Ruler, Pencil, Circle, Square, Type, ArrowUpRight, Eraser, Move, ChevronDown, Lightbulb, CalendarClock, Bandage, HelpCircle, Car, ExternalLink, Camera, X, Check, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, useContext, createContext } from "react";
+import { MessageSquare, BarChart2, ClipboardList, CalendarDays, Users, User, Video, Microscope, PenLine, LayoutDashboard, Stethoscope, Activity, Scan, Bone, MessageCircle, Pill, Mic, MicOff, Monitor, Disc, PhoneOff, Hand, ZoomIn, Sun, Ruler, Pencil, Circle, Square, Type, ArrowUpRight, Eraser, Move, ChevronDown, ChevronLeft, ChevronRight, Lightbulb, CalendarClock, Bandage, HelpCircle, Car, ExternalLink, Camera, X, Check, AlertCircle, Loader2, Bell, Shield, LogOut, FileText, Clock, Plus, Send, Search } from "lucide-react";
+
+const AppCtx = createContext(null);
+
+const patientsDb = [
+  { id: "EL-2026-0847", name: "Erik Lindström", initials: "EL", age: 58, diagnosis: "SCC mandibel T3N1M0", pathway: "H&H Lambå", pathwayColor: "sage" },
+  { id: "MA-2026-0312", name: "Maria Andersson", initials: "MA", age: 44, diagnosis: "Bröstcancer stadium IIA", pathway: "Onkologi / Kirurgi", pathwayColor: "rose" },
+  { id: "JN-2026-1103", name: "Johan Nilsson", initials: "JN", age: 67, diagnosis: "Sigmoid kolonkarcinom", pathway: "Kolorektal Kirurgi", pathwayColor: "blue" },
+];
 
 const C = {
   bg: "oklch(98% 0.004 55)", s1: "oklch(96% 0.005 55)", s2: "oklch(93% 0.007 55)", s3: "oklch(88% 0.008 55)",
@@ -25,7 +33,71 @@ const T = {
   title: { fontSize: "1.25rem", lineHeight: 1.25 },
   section: { fontSize: "1.5rem", lineHeight: 1.18 },
 };
-const patient = { name: "Erik Lindström", id: "EL-2026-0847", age: 58 };
+const auditLogData = [
+  { ts: "2026-05-18 09:52", user: "Ssk L. Strand", userId: "HSA-442", action: "Klinisk fotografi", patient: "EL-2026-0847", device: "iPhone 14 Pro · MDM", outcome: "Matrix · Skickat" },
+  { ts: "2026-05-18 09:28", user: "Dr. K. Johansson", userId: "HSA-217", action: "Klinisk fotografi", patient: "EL-2026-0847", device: "iPhone 14 Pro · MDM", outcome: "EMR väntar" },
+  { ts: "2026-05-18 09:14", user: "Dr. A. Bergström", userId: "HSA-001", action: "Inloggning (SITHS)", patient: "—", device: "MacBook Pro · Managed", outcome: "Godkänd" },
+  { ts: "2026-05-18 09:09", user: "Dr. M. Eriksson", userId: "HSA-389", action: "EMR-skrivning", patient: "EL-2026-0847", device: "Workstation · Managed", outcome: "DocumentReference/6120" },
+  { ts: "2026-05-18 08:55", user: "Dr. K. Johansson", userId: "HSA-217", action: "Visade journal", patient: "EL-2026-0847", device: "iPad Pro · MDM", outcome: "Läst" },
+  { ts: "2026-05-18 08:44", user: "Koordinator S. Berg", userId: "HSA-558", action: "Schemaändring", patient: "EL-2026-0847", device: "Workstation · Managed", outcome: "Sparad" },
+  { ts: "2026-05-17 16:30", user: "Dr. A. Bergström", userId: "HSA-001", action: "MDT-publicering", patient: "EL-2026-0847", device: "MacBook Pro · Managed", outcome: "Patientportalen uppdaterad" },
+  { ts: "2026-05-17 14:10", user: "Dr. L. Svensson", userId: "HSA-304", action: "Inloggning (HSA-ID)", patient: "—", device: "Workstation · Managed", outcome: "Godkänd" },
+];
+
+const initialNotifications = [
+  { id: 1, room: "Kirurgplanering", from: "Dr. K. Johansson", text: "3D-modell redo för granskning", time: "09:55", read: false },
+  { id: 2, room: "Maxillofacial", from: "Dr. M. Eriksson", text: "Extraktionsprotokoll bifogat", time: "09:48", read: false },
+  { id: 3, room: "Anestesi", from: "Dr. L. Svensson", text: "Pre-op blodprover mottagna", time: "09:34", read: true },
+  { id: 4, type: "emr", text: "Klinisk fotografi uppladdad till EMR", ref: "DocumentReference/6124", time: "09:52", read: false },
+];
+
+const weeksData = [
+  {
+    label: "Vecka 12 · mars 2026",
+    suggestion: null,
+    days: [
+      { day: "Mån 17", items: [{ t: "08:30", n: "Sårvård", l: "Södersjukhuset", c: "rose", done: true }] },
+      { day: "Tis 18", items: [{ t: "10:00", n: "Strålning (13/33)", l: "Karolinska Solna", c: "mauve", done: true }, { t: "14:00", n: "Dietist", l: "Karolinska Solna", c: "sage", done: true }] },
+      { day: "Ons 19", items: [{ t: "09:00", n: "MDT-granskning", l: "Karolinska", c: "blue", done: true }, { t: "08:30", n: "Sårvård", l: "Södersjukhuset", c: "rose", done: true }] },
+      { day: "Tor 20", items: [{ t: "10:00", n: "Strålning (14/33)", l: "Karolinska Solna", c: "mauve", done: true }] },
+      { day: "Fre 21", items: [{ t: "08:30", n: "Sårvård", l: "Södersjukhuset", c: "rose", done: true }] },
+    ],
+  },
+  {
+    label: "Vecka 13 · mars 2026",
+    suggestion: "Fre: 3 platser. Protetik kan flytta till Karolinska samma dag som plastikkirurgi — båda tillgängliga 15:30.",
+    days: [
+      { day: "Mån 24", items: [{ t: "08:30", n: "Sårvård", l: "Södersjukhuset", c: "rose" }] },
+      { day: "Tis 25", items: [{ t: "10:00", n: "Strålning (14/33)", l: "Karolinska Solna", c: "mauve" }, { t: "14:00", n: "Dietist", l: "Karolinska Solna", c: "sage" }] },
+      { day: "Ons 26", items: [{ t: "08:30", n: "Sårvård", l: "Södersjukhuset", c: "rose" }, { t: "13:00", n: "Logoped", l: "Danderyds sjukhus", c: "sage" }] },
+      { day: "Tor 27", items: [{ t: "10:00", n: "Strålning (15/33)", l: "Karolinska Solna", c: "mauve" }] },
+      { day: "Fre 28", items: [{ t: "08:30", n: "Sårvård", l: "Södersjukhuset", c: "rose" }, { t: "11:00", n: "Plastikkirurgi uppföljning", l: "Karolinska", c: "blue" }, { t: "14:30", n: "Protetik", l: "Eastmaninstitutet", c: "amber" }] },
+    ],
+  },
+  {
+    label: "Vecka 14 · mars–apr 2026",
+    suggestion: "Ons 2 apr: Operationsdagen. Inga andra aktiviteter schemalagda.",
+    days: [
+      { day: "Mån 31", items: [] },
+      { day: "Tis 1 apr", items: [{ t: "10:00", n: "Strålning (16/33)", l: "Karolinska Solna", c: "mauve" }, { t: "13:30", n: "Pre-op förberedelse", l: "Karolinska", c: "blue" }] },
+      { day: "Ons 2 apr", items: [{ t: "07:00", n: "OPERATION — Resektion + Lambå", l: "OR 4 Karolinska", c: "sage", important: true }] },
+      { day: "Tor 3 apr", items: [{ t: "—", n: "Postoperativ vård (IVA)", l: "Karolinska IVA", c: "rose" }] },
+      { day: "Fre 4 apr", items: [{ t: "—", n: "Postoperativ vård (dag 2)", l: "Karolinska IVA", c: "rose" }] },
+    ],
+  },
+];
+
+const timelineNotes = {
+  2: [{ from: "Dr. K. Johansson", time: "14:20", text: "Bekräftat vaskulär kaliber bilateralt. Vänster sida föredras — bättre pedikellängd." }],
+  4: [{ from: "MDT-protokoll", time: "15:00", text: "Alla specialister godkänner plan. Resektion + lambå bekräftad som förstahandsval." }],
+  7: [{ from: "Dr. K. Johansson", time: "11:00", text: "3D-modell mottagen. Osteotomisegment planerade och kontrollerade mot CT." }],
+  8: [
+    { from: "Dr. A. Bergström", time: "09:05", text: "Slutlig plan godkänd av alla 8 deltagare." },
+    { from: "Koordinator S. Berg", time: "09:48", text: "OR-slot 2 apr 07:00 bekräftat. 10h estimat. Anestesi notifierad." },
+  ],
+};
+
+const patient = patientsDb[0];
 
 const Tag = ({ text, color, bg }) => (
   <span style={{ ...T.meta, fontWeight: 500, fontFamily: font, color, background: bg, padding: "2px 8px", borderRadius: 4 }}>{text}</span>
@@ -37,6 +109,103 @@ const Badge = ({ n, color }) => n > 0 ? <span style={{ ...T.meta, fontWeight: 60
 const Label = ({ children }) => (
   <div style={{ ...T.eyebrow, fontFamily: font, fontWeight: 600, letterSpacing: "0.04em", color: C.fg3, marginBottom: 6 }}>{children}</div>
 );
+
+function LoginScreen({ onAuth }) {
+  const [method, setMethod] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const doAuth = (m) => {
+    setMethod(m);
+    setLoading(true);
+    setTimeout(() => onAuth({ name: "Dr. A. Bergström", role: "H&H Kirurgi", id: "HSA-001" }), m === "siths" ? 2200 : 1400);
+  };
+  return (
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: C.bg, padding: 24 }}>
+      <div style={{ width: "100%", maxWidth: 360 }}>
+        <div style={{ marginBottom: 40, textAlign: "center" }}>
+          <div style={{ fontSize: "1.6rem", fontWeight: 700, color: C.fg, fontFamily: font, marginBottom: 4 }}>
+            <span style={{ color: C.sage }}>●</span> CasePlatform
+          </div>
+          <div style={{ ...T.body, color: C.fg3 }}>Karolinska Universitetssjukhuset</div>
+        </div>
+        {loading ? (
+          <div style={{ textAlign: "center", padding: "32px 0" }}>
+            <Loader2 size={28} color={C.sage} style={{ animation: "spin 1s linear infinite", marginBottom: 14 }} />
+            <div style={{ ...T.body, color: C.fg2 }}>{method === "siths" ? "Läser SITHS-kort via NFC…" : "Omdirigerar till HSA-ID SSO…"}</div>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <button onClick={() => doAuth("siths")} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 10, cursor: "pointer", width: "100%", textAlign: "left", transition: "border-color 150ms ease" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: C.sageBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Shield size={18} color={C.sage} />
+              </div>
+              <div>
+                <div style={{ ...T.label, fontWeight: 600, color: C.fg, fontFamily: font }}>SITHS Smartkort</div>
+                <div style={{ ...T.meta, color: C.fg3 }}>NFC · Stark autentisering</div>
+              </div>
+            </button>
+            <button onClick={() => doAuth("hsa")} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 10, cursor: "pointer", width: "100%", textAlign: "left" }}>
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: C.blueBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <User size={18} color={C.blue} />
+              </div>
+              <div>
+                <div style={{ ...T.label, fontWeight: 600, color: C.fg, fontFamily: font }}>HSA-ID SSO</div>
+                <div style={{ ...T.meta, color: C.fg3 }}>Sjukhusidentitet via SAML 2.0</div>
+              </div>
+            </button>
+            <div style={{ ...T.meta, color: C.fg3, textAlign: "center", marginTop: 8 }}>
+              Alla sessioner loggas och granskas i enlighet med PDL
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SessionTimeoutWarning({ remaining, onExtend, onLogout }) {
+  const secs = Math.ceil(remaining / 1000);
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9000, background: "color-mix(in oklch, oklch(0% 0 0) 50%, transparent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ background: C.bg, borderRadius: 12, padding: 28, maxWidth: 360, width: "calc(100% - 32px)", textAlign: "center", boxShadow: "0 12px 40px color-mix(in oklch, oklch(0% 0 0) 25%, transparent)" }}>
+        <Clock size={28} color={C.amber} style={{ marginBottom: 14 }} />
+        <div style={{ ...T.title, fontWeight: 600, color: C.fg, marginBottom: 8 }}>Sessionen löper ut</div>
+        <div style={{ ...T.body, color: C.fg2, marginBottom: 20 }}>
+          Du loggas ut automatiskt om <span style={{ fontWeight: 600, color: C.amber, fontFamily: mono }}>{secs}s</span> på grund av inaktivitet.
+        </div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+          <Btn primary onClick={onExtend}>Förläng session</Btn>
+          <Btn onClick={onLogout}>Logga ut</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NotificationPanel({ notifications, onRead, onClose }) {
+  const unread = notifications.filter(n => !n.read);
+  return (
+    <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 6, width: 320, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: "0 8px 24px color-mix(in oklch, oklch(0% 0 0) 14%, transparent)", zIndex: 2000, overflow: "hidden" }}>
+      <div style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ ...T.label, fontWeight: 600, color: C.fg, fontFamily: font }}>Notifieringar</span>
+        {unread.length > 0 && <button onClick={() => notifications.forEach(n => onRead(n.id))} style={{ ...T.meta, color: C.fg3, border: "none", background: "none", cursor: "pointer", fontFamily: font }}>Markera alla lästa</button>}
+      </div>
+      {notifications.length === 0 ? (
+        <div style={{ padding: 20, textAlign: "center", ...T.body, color: C.fg3 }}>Inga notifieringar</div>
+      ) : (
+        notifications.map(n => (
+          <div key={n.id} onClick={() => onRead(n.id)} style={{ padding: "10px 14px", borderBottom: `1px solid ${C.border}`, cursor: "pointer", background: n.read ? "transparent" : `color-mix(in oklch, ${C.sage} 5%, ${C.s1})`, display: "flex", gap: 10, alignItems: "flex-start" }}>
+            {!n.read && <span style={{ width: 7, height: 7, borderRadius: "50%", background: C.sage, flexShrink: 0, marginTop: 5 }} />}
+            <div style={{ flex: 1, minWidth: 0, paddingLeft: n.read ? 17 : 0 }}>
+              <div style={{ ...T.meta, fontWeight: 600, color: C.fg, fontFamily: font }}>{n.room || "Sistema"}</div>
+              <div style={{ ...T.meta, color: C.fg2 }}>{n.text}</div>
+              <div style={{ ...T.meta, color: C.fg3, fontFamily: mono }}>{n.time}</div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
 
 const EMR_STATUS = {
   pending:       { label: "Ej skickat till EMR",       color: C.amber, bg: C.amberBg, Icon: null },
@@ -277,6 +446,19 @@ function CaseSpace({ nav }) {
 
 /* ─── 2. TIDSLINJE ─── */
 function Timeline() {
+  const { patient } = useContext(AppCtx);
+  const [expanded, setExpanded] = useState(null);
+  const [newNote, setNewNote] = useState("");
+  const [localNotes, setLocalNotes] = useState({});
+
+  const allNotes = (i) => [...(timelineNotes[i] || []), ...(localNotes[i] || [])];
+
+  const addNote = (i) => {
+    if (!newNote.trim()) return;
+    setLocalNotes(n => ({ ...n, [i]: [...(n[i] || []), { from: "Dr. Bergström", time: "Nu", text: newNote }] }));
+    setNewNote("");
+  };
+
   return (
     <div style={{ padding: "24px 20px", maxWidth: 600, margin: "0 auto" }}>
       <div style={{ marginBottom: 24 }}>
@@ -285,16 +467,53 @@ function Timeline() {
       </div>
       <div style={{ paddingLeft: 20, position: "relative" }}>
         <div style={{ position: "absolute", left: 6, top: 3, bottom: 3, width: 2, background: C.border }} />
-        {timelineEvents.map((e, i) => (
-          <div key={i} style={{ marginBottom: 14, position: "relative" }}>
-            <div style={{ position: "absolute", left: -17, top: 3, width: 10, height: 10, borderRadius: "50%", background: e.current ? C.sage : e.done ? C.s3 : C.s1, border: `2px solid ${e.current ? C.sage : e.done ? C.fg3 : C.border}` }} />
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ ...T.meta, ...dataText, color: C.fg3, minWidth: 48 }}>{e.date}</span>
-              <span style={{ ...T.bodySm, fontWeight: e.current ? 600 : 400, color: e.done ? C.fg2 : e.current ? C.fg : C.fg3 }}>{e.label}</span>
-              <Tag text={e.dept} color={C.sage} bg={C.sageBg} />
+        {timelineEvents.map((e, i) => {
+          const notes = allNotes(i);
+          const isExpanded = expanded === i;
+          return (
+            <div key={i} style={{ marginBottom: 6, position: "relative" }}>
+              <div style={{ position: "absolute", left: -17, top: 8, width: 10, height: 10, borderRadius: "50%", background: e.current ? C.sage : e.done ? C.s3 : C.s1, border: `2px solid ${e.current ? C.sage : e.done ? C.fg3 : C.border}`, zIndex: 1 }} />
+              <button
+                onClick={() => setExpanded(isExpanded ? null : i)}
+                aria-expanded={isExpanded}
+                style={{ width: "100%", background: isExpanded ? C.s1 : "transparent", border: `1px solid ${isExpanded ? C.border : "transparent"}`, borderRadius: 6, cursor: "pointer", padding: "6px 8px", textAlign: "left", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}
+              >
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ ...T.meta, ...dataText, color: C.fg3, minWidth: 48 }}>{e.date}</span>
+                  <span style={{ ...T.bodySm, fontWeight: e.current ? 600 : 400, color: e.done ? C.fg2 : e.current ? C.fg : C.fg3 }}>{e.label}</span>
+                  <Tag text={e.dept} color={C.sage} bg={C.sageBg} />
+                  {notes.length > 0 && <Badge n={notes.length} color={C.sage} />}
+                </div>
+                <ChevronDown size={12} color={C.fg3} style={{ transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 160ms ease", flexShrink: 0 }} />
+              </button>
+              {isExpanded && (
+                <div style={{ margin: "4px 0 10px 8px", paddingLeft: 12, borderLeft: `2px solid ${C.border}` }}>
+                  {notes.map((n, j) => (
+                    <div key={j} style={{ marginBottom: 10 }}>
+                      <div style={{ display: "flex", gap: 6, alignItems: "baseline", marginBottom: 2 }}>
+                        <span style={{ ...T.meta, fontWeight: 600, color: C.fg, fontFamily: font }}>{n.from}</span>
+                        <span style={{ ...T.meta, ...dataText, color: C.fg3 }}>{n.time}</span>
+                      </div>
+                      <p style={{ ...T.body, color: C.fg2, margin: 0 }}>{n.text}</p>
+                    </div>
+                  ))}
+                  {notes.length === 0 && <div style={{ ...T.meta, color: C.fg3, marginBottom: 8 }}>Inga anteckningar ännu.</div>}
+                  <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                    <input
+                      aria-label="Lägg till anteckning"
+                      value={newNote}
+                      onChange={ev => setNewNote(ev.target.value)}
+                      onKeyDown={ev => ev.key === "Enter" && addNote(i)}
+                      placeholder="Lägg till anteckning…"
+                      style={{ flex: 1, padding: "6px 10px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 5, color: C.fg, fontFamily: font, fontSize: "0.95rem", outline: "none" }}
+                    />
+                    <Btn small primary onClick={() => addNote(i)}>Lägg till</Btn>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -302,42 +521,75 @@ function Timeline() {
 
 /* ─── 3. KONSULTATION ─── */
 function ConsultRequest() {
+  const { patient } = useContext(AppCtx);
   const [step, setStep] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [urgency, setUrgency] = useState("rutinmässig");
+  const [question, setQuestion] = useState("");
+  const [submitted, setSubmitted] = useState(new Set());
+
   const specialties = [
-    "Plastikkirurgi / Mikrovaskulär",
-    "Maxillofacial / Protetik",
-    "Anestesi",
-    "Onkologi — Strålning",
-    "Radiologi",
-    "Tal & Sväljning",
-    "Näring / Dietistik",
+    { name: "Plastikkirurgi / Mikrovaskulär", color: C.blue, bg: C.blueBg },
+    { name: "Maxillofacial / Protetik", color: C.amber, bg: C.amberBg },
+    { name: "Anestesi", color: C.sage, bg: C.sageBg },
+    { name: "Onkologi — Strålning", color: C.mauve, bg: C.mauveBg },
+    { name: "Radiologi", color: C.blue, bg: C.blueBg },
+    { name: "Tal & Sväljning", color: C.sage, bg: C.sageBg },
+    { name: "Näring / Dietistik", color: C.sage, bg: C.sageBg },
   ];
+
+  const sp = selected ? specialties.find(s => s.name === selected) : specialties[0];
+
+  const handleSubmit = () => {
+    setSubmitted(prev => new Set([...prev, selected]));
+    setStep(2);
+  };
+
   return (
     <div style={{ padding: "24px 20px", maxWidth: 500, margin: "0 auto" }}>
       <div style={{ ...T.section, fontWeight: 600, color: C.fg, marginBottom: 20 }}>Begär specialistyttrande</div>
       {step === 0 && specialties.map((s, i) => (
-        <div key={i} onClick={() => setStep(1)} style={{ padding: "10px 12px", marginBottom: 4, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, cursor: "pointer", ...T.bodySm, color: C.fg2 }}>{s}</div>
+        <div key={i} onClick={() => { setSelected(s.name); setStep(1); }} style={{ padding: "10px 12px", marginBottom: 4, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, cursor: "pointer", ...T.bodySm, color: C.fg2, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>{s.name}</span>
+          {submitted.has(s.name) && <span style={{ ...T.meta, color: C.sage, fontFamily: mono }}>✓ Skickat</span>}
+        </div>
       ))}
-      {step === 1 && (
+      {step === 1 && sp && (
         <div>
-          <Tag text="Plastikkirurgi / Mikrovaskulär" color={C.blue} bg={C.blueBg} />
+          <button onClick={() => setStep(0)} style={{ ...T.meta, color: C.fg3, border: "none", background: "none", cursor: "pointer", fontFamily: font, marginBottom: 12, display: "flex", alignItems: "center", gap: 4 }}>
+            <ChevronLeft size={13} /> Tillbaka
+          </button>
+          <Tag text={selected} color={sp.color} bg={sp.bg} />
           <div style={{ background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, padding: 12, margin: "14px 0" }}>
             <Label>Patientöversikt</Label>
             <div style={{ ...T.bodySm, color: C.fg2, lineHeight: 1.7 }}>
               {patient.name} · {patient.age}å<br />
-              SCC mandibel T3N1M0 · Planerat: segmentell mandibulektomi<br />
+              {patient.diagnosis} · Planerat: segmentell mandibulektomi<br />
               CTA 2026-02-10 · CT hals 2026-02-03
             </div>
           </div>
-          <textarea aria-label="Klinisk fråga för specialistyttrande" placeholder="Vad behöver teamet hjälp att bedöma?" style={{ width: "100%", minHeight: 80, padding: 10, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: "1rem", lineHeight: 1.55, fontFamily: font, resize: "vertical", outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
-          <Btn primary onClick={() => setStep(2)}>Skicka förfrågan</Btn>
+          <div style={{ marginBottom: 12 }}>
+            <Label>Prioritet</Label>
+            <div style={{ display: "flex", gap: 6 }}>
+              {["rutinmässig", "brådskande", "akut"].map(u => (
+                <button key={u} onClick={() => setUrgency(u)} style={{ padding: "5px 12px", border: `1px solid ${urgency === u ? C.amber : C.border}`, borderRadius: 5, background: urgency === u ? C.amberBg : "transparent", color: urgency === u ? C.amber : C.fg3, ...T.meta, fontFamily: font, cursor: "pointer" }}>{u}</button>
+              ))}
+            </div>
+          </div>
+          <textarea aria-label="Klinisk fråga för specialistyttrande" value={question} onChange={e => setQuestion(e.target.value)} placeholder="Vad behöver teamet hjälp att bedöma?" style={{ width: "100%", minHeight: 80, padding: 10, background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, color: C.fg, fontSize: "1rem", lineHeight: 1.55, fontFamily: font, resize: "vertical", outline: "none", boxSizing: "border-box", marginBottom: 12 }} />
+          <Btn primary onClick={handleSubmit} style={{ opacity: question.trim() ? 1 : 0.5 }}>Skicka förfrågan</Btn>
         </div>
       )}
       {step === 2 && (
         <div style={{ textAlign: "center", padding: "48px 0" }}>
-          <div style={{ fontSize: 32, marginBottom: 12 }}>✓</div>
-          <div style={{ ...T.title, fontWeight: 600, color: C.fg }}>Skickat till Plastikkirurgi</div>
-          <div style={{ ...T.meta, color: C.fg3, marginTop: 6 }}>Länkad till tidslinje · Svar spåras</div>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.sageBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+            <Check size={22} color={C.sage} />
+          </div>
+          <div style={{ ...T.title, fontWeight: 600, color: C.fg }}>Skickat till {selected}</div>
+          <div style={{ ...T.meta, color: C.fg3, marginTop: 6 }}>Prioritet: {urgency} · Länkad till tidslinje · Svar spåras</div>
+          <div style={{ marginTop: 20, display: "flex", gap: 8, justifyContent: "center" }}>
+            <Btn onClick={() => { setStep(0); setQuestion(""); setSelected(null); }}>Ny förfrågan</Btn>
+          </div>
         </div>
       )}
     </div>
@@ -346,48 +598,92 @@ function ConsultRequest() {
 
 /* ─── 4. KALENDER ─── */
 function CalendarView() {
+  const { patient } = useContext(AppCtx);
+  const [weekIdx, setWeekIdx] = useState(1);
+  const [selectedAppt, setSelectedAppt] = useState(null);
+  const week = weeksData[weekIdx];
+  const colorFor = (key) => ({ rose: C.rose, mauve: C.mauve, sage: C.sage, blue: C.blue, amber: C.amber }[key] || C.fg3);
+  const bgFor = (key) => ({ rose: C.roseBg, mauve: C.mauveBg, sage: C.sageBg, blue: C.blueBg, amber: C.amberBg }[key] || C.s2);
+
   return (
     <div style={{ padding: "24px 20px", maxWidth: 540, margin: "0 auto" }}>
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>{patient.name}</div>
-        <div style={{ ...T.meta, ...dataText, color: C.fg3 }}>Vecka 13 · mars 2026</div>
-      </div>
-      <div style={{ background: C.amberBg, border: `1px solid ${C.amber}33`, borderRadius: 6, padding: 12, marginBottom: 20 }}>
-        <div style={{ ...T.bodySm, color: C.fg2, lineHeight: 1.55 }}>
-          <span style={{ color: C.amber, fontWeight: 600 }}>Fre: 3 platser. </span>
-          Protetik kan flytta till Karolinska samma dag som plastikkirurgi — båda tillgängliga 15:30.
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        <div>
+          <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>{patient.name}</div>
+          <div style={{ ...T.meta, ...dataText, color: C.fg3 }}>{week.label}</div>
         </div>
-        <Btn small style={{ marginTop: 8 }}>Föreslå till teamet</Btn>
+        <div style={{ display: "flex", gap: 4 }}>
+          <button aria-label="Föregående vecka" onClick={() => setWeekIdx(i => Math.max(0, i - 1))} disabled={weekIdx === 0} style={{ width: 32, height: 32, border: `1px solid ${C.border}`, borderRadius: 6, background: C.s1, cursor: weekIdx === 0 ? "default" : "pointer", opacity: weekIdx === 0 ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <ChevronLeft size={14} color={C.fg2} />
+          </button>
+          <button aria-label="Nästa vecka" onClick={() => setWeekIdx(i => Math.min(weeksData.length - 1, i + 1))} disabled={weekIdx === weeksData.length - 1} style={{ width: 32, height: 32, border: `1px solid ${C.border}`, borderRadius: 6, background: C.s1, cursor: weekIdx === weeksData.length - 1 ? "default" : "pointer", opacity: weekIdx === weeksData.length - 1 ? 0.4 : 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <ChevronRight size={14} color={C.fg2} />
+          </button>
+        </div>
       </div>
-      {calendarAppts.map((d, i) => (
+      {week.suggestion && (
+        <div style={{ background: C.amberBg, border: `1px solid ${C.amber}33`, borderRadius: 6, padding: 12, marginBottom: 20 }}>
+          <div style={{ ...T.bodySm, color: C.fg2, lineHeight: 1.55 }}>
+            <span style={{ color: C.amber, fontWeight: 600 }}>Koordineringsförslag. </span>
+            {week.suggestion}
+          </div>
+          <Btn small style={{ marginTop: 8 }}>Föreslå till teamet</Btn>
+        </div>
+      )}
+      {week.days.map((d, i) => (
         <div key={i} style={{ marginBottom: 14 }}>
           <div style={{ ...T.label, fontWeight: 600, color: C.fg, marginBottom: 6, ...dataText }}>{d.day}</div>
+          {d.items.length === 0 && <div style={{ ...T.meta, color: C.fg3, padding: "6px 0" }}>Inga bokade tider</div>}
           {d.items.map((a, j) => (
-            <div key={j} style={{ display: "flex", gap: 12, padding: "8px 12px", marginBottom: 3, background: `color-mix(in oklch, ${a.c} 6%, ${C.s1})`, borderRadius: 5, border: `1px solid color-mix(in oklch, ${a.c} 22%, ${C.border})` }}>
-              <span style={{ ...T.meta, ...dataText, color: C.fg3, minWidth: 42 }}>{a.t}</span>
-              <div>
-                <div style={{ ...T.bodySm, color: C.fg }}>{a.n}</div>
+            <button key={j} onClick={() => setSelectedAppt(a)} style={{ display: "flex", gap: 12, padding: "8px 12px", marginBottom: 3, width: "100%", background: a.done ? C.s1 : a.important ? `color-mix(in oklch, ${colorFor(a.c)} 10%, ${C.s1})` : `color-mix(in oklch, ${colorFor(a.c)} 6%, ${C.s1})`, borderRadius: 5, border: `1px solid ${a.important ? colorFor(a.c) : `color-mix(in oklch, ${colorFor(a.c)} 22%, ${C.border})`}`, cursor: "pointer", textAlign: "left", opacity: a.done ? 0.6 : 1 }}>
+              <span style={{ ...T.meta, ...dataText, color: C.fg3, minWidth: 42, flexShrink: 0 }}>{a.t}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ ...T.bodySm, color: a.done ? C.fg3 : C.fg, textDecoration: a.done ? "line-through" : "none", fontWeight: a.important ? 600 : 400 }}>{a.n}</div>
                 <div style={{ ...T.meta, color: C.fg3 }}>{a.l}</div>
               </div>
-            </div>
+              {a.done && <Check size={13} color={C.fg3} style={{ flexShrink: 0, alignSelf: "center" }} />}
+            </button>
           ))}
         </div>
       ))}
       <div style={{ background: C.s1, padding: 10, borderRadius: 6, marginTop: 4, border: `1px solid ${C.border}` }}>
         <div style={{ ...T.bodySm, color: C.fg2, fontStyle: "italic" }}>"Kan inte resa måndag — behöver skjuts. Alla tisdag på Karolinska om möjligt."</div>
       </div>
+      {selectedAppt && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "color-mix(in oklch, oklch(0% 0 0) 40%, transparent)", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setSelectedAppt(null)}>
+          <div style={{ background: C.bg, borderRadius: 12, padding: 24, maxWidth: 340, width: "calc(100% - 32px)", boxShadow: "0 8px 32px color-mix(in oklch, oklch(0% 0 0) 20%, transparent)" }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+              <div>
+                <div style={{ ...T.titleSm, fontWeight: 600, color: C.fg }}>{selectedAppt.n}</div>
+                <div style={{ ...T.meta, color: C.fg3, fontFamily: mono }}>{selectedAppt.t} · {selectedAppt.l}</div>
+              </div>
+              <button aria-label="Stäng" onClick={() => setSelectedAppt(null)} style={{ border: "none", background: C.s2, borderRadius: 6, width: 32, height: 32, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <X size={14} color={C.fg2} />
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {["Begär omdisponering", "Skicka påminnelse till patient", "Länka till MDT-åtgärd", "Lägg till anteckning"].map(action => (
+                <button key={action} onClick={() => setSelectedAppt(null)} style={{ padding: "9px 12px", background: C.s1, border: `1px solid ${C.border}`, borderRadius: 6, cursor: "pointer", textAlign: "left", ...T.bodySm, color: C.fg2, fontFamily: font }}>
+                  {action} →
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 /* ─── 5. MDT-SAMMANFATTNING ─── */
 function MDTSummary() {
+  const { patient } = useContext(AppCtx);
   const [approved, setApproved] = useState(false);
   const [confirmPublish, setConfirmPublish] = useState(false);
   return (
     <div style={{ padding: "24px 20px", maxWidth: 560, margin: "0 auto" }}>
       <div style={{ marginBottom: 20 }}>
-        <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>Slutlig kirurgisk plangranskning</div>
+        <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>{patient.name} · MDT-granskning</div>
         <div style={{ ...T.meta, ...dataText, color: C.fg3 }}>2026-03-19 · 47 min · 8 deltagare</div>
       </div>
       <div style={{ marginBottom: 20 }}>
@@ -433,6 +729,7 @@ function MDTSummary() {
 
 /* ─── 6. PATIENTPORTAL ─── */
 function PatientPortal() {
+  const { patient } = useContext(AppCtx);
   const lb = "oklch(96% 0.008 55)";
   const lt = "oklch(20% 0.01 55)";
   const lt2 = "oklch(45% 0.01 55)";
@@ -442,7 +739,7 @@ function PatientPortal() {
       <div style={{ maxWidth: 440, margin: "0 auto", padding: "20px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: "1.45rem", lineHeight: 1.2, fontWeight: 600 }}>Hej Erik</div>
+            <div style={{ fontSize: "1.45rem", lineHeight: 1.2, fontWeight: 600 }}>Hej {patient.name.split(" ")[0]}</div>
             <div style={{ ...T.label, color: lt2 }}>Din vårdöversikt</div>
           </div>
           <div style={{ ...T.meta, fontFamily: font, padding: "3px 8px", background: "oklch(90% 0.03 155)", color: "oklch(35% 0.1 155)", borderRadius: 16 }}>BankID ✓</div>
@@ -488,9 +785,27 @@ function PatientPortal() {
 
 /* ─── 7. KONFERENS ─── */
 function Conference() {
+  const { patient } = useContext(AppCtx);
   const [muted, setMuted] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [raisedHand, setRaisedHand] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatInput, setChatInput] = useState("");
+  const [chatMsgs, setChatMsgs] = useState([
+    { from: "Dr. K. Johansson", text: "Kan vi se CT-serien igen?", time: "23:38" },
+    { from: "Dr. M. Eriksson", text: "Bekräftar extraktion — 2 v tidslinje stämmer.", time: "23:40" },
+    { from: "Koordinator S. Nilsson", text: "OR-slot 2 apr bekräftat, 10h plats.", time: "23:41" },
+  ]);
+  const chatEndRef = useRef(null);
+
+  const sendChat = () => {
+    if (!chatInput.trim()) return;
+    setChatMsgs(m => [...m, { from: "Dr. A. Bergström", text: chatInput, time: new Date().toTimeString().slice(0, 5) }]);
+    setChatInput("");
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+  };
+
   const participants = [
     { name: "Dr. A. Bergström", role: "H&H Kirurgi", speaking: true },
     { name: "Dr. K. Johansson", role: "Plastikkirurgi", speaking: false },
@@ -507,47 +822,74 @@ function Conference() {
           <span style={{ ...T.meta, color: C.fg3, marginLeft: 8 }}>{patient.name}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {raisedHand && <span style={{ ...T.meta, color: C.amber, fontFamily: font, display: "flex", alignItems: "center", gap: 4 }}><Hand size={13} /> Dr. Bergström</span>}
           {recording && (
-            <span style={{ fontSize: "0.8rem", ...dataText, color: C.rose, display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.rose, animation: "pulse 1.5s infinite" }} />REC
+            <span style={{ ...T.meta, ...dataText, color: C.rose, display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: C.rose, animation: "pulse 1.5s infinite", flexShrink: 0 }} />REC
             </span>
           )}
           <span style={{ ...T.meta, ...dataText, color: C.fg3 }}>23:41</span>
         </div>
       </div>
-      <div className="conference-grid" style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4, padding: "8px 16px" }}>
-        {participants.map((p, i) => (
-          <div key={i} style={{ background: C.s1, borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: p.speaking ? `2px solid ${C.sage}` : `1px solid ${C.border}`, position: "relative", minHeight: 110 }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.s3, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: C.fg2, marginBottom: 6 }}>
-              {p.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
-            </div>
-            <div style={{ ...T.bodySm, fontWeight: 500, color: C.fg, textAlign: "center" }}>{p.name}</div>
-            <div style={{ ...T.meta, color: C.fg3 }}>{p.role}</div>
-            {p.speaking && (
-              <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 2 }}>
-                {[3, 5, 2, 4, 3].map((h, j) => (
-                  <div key={j} style={{ width: 3, height: h * 2 + 4, background: C.sage, borderRadius: 2, animation: `wave ${0.4 + j * 0.1}s ease-in-out infinite alternate` }} />
-                ))}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden", minHeight: 0 }}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          <div className="conference-grid" style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4, padding: "8px 16px", overflow: "auto" }}>
+            {participants.map((p, i) => (
+              <div key={i} style={{ background: C.s1, borderRadius: 8, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: p.speaking ? `2px solid ${C.sage}` : `1px solid ${C.border}`, position: "relative", minHeight: 110 }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.s3, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: C.fg2, marginBottom: 6 }}>
+                  {p.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                </div>
+                <div style={{ ...T.bodySm, fontWeight: 500, color: C.fg, textAlign: "center" }}>{p.name}</div>
+                <div style={{ ...T.meta, color: C.fg3 }}>{p.role}</div>
+                {p.speaking && (
+                  <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 2 }}>
+                    {[3, 5, 2, 4, 3].map((h, j) => (
+                      <div key={j} style={{ width: 3, height: h * 2 + 4, background: C.sage, borderRadius: 2, animation: `wave ${0.4 + j * 0.1}s ease-in-out infinite alternate` }} />
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
+            ))}
           </div>
-        ))}
-      </div>
-      {sharing && (
-        <div style={{ margin: "0 16px 8px", background: C.s1, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: 16, textAlign: "center" }}>
-          <div style={{ ...T.label, color: C.blue, marginBottom: 4 }}>Skärmdelning aktiv</div>
-          <div style={{ ...T.bodySm, color: C.fg2 }}>Dr. Bergström delar: OHIF DICOM-visare — CT Hals-serie</div>
+          {sharing && (
+            <div style={{ margin: "0 16px 8px", background: C.s1, border: `1px solid ${C.blue}44`, borderRadius: 6, padding: 16, textAlign: "center" }}>
+              <div style={{ ...T.label, color: C.blue, marginBottom: 4 }}>Skärmdelning aktiv</div>
+              <div style={{ ...T.bodySm, color: C.fg2 }}>Dr. Bergström delar: OHIF DICOM-visare — CT Hals-serie</div>
+            </div>
+          )}
         </div>
-      )}
+        {showChat && (
+          <div style={{ width: 260, background: C.s1, borderLeft: `1px solid ${C.border}`, display: "flex", flexDirection: "column", flexShrink: 0 }}>
+            <div style={{ padding: "10px 12px", borderBottom: `1px solid ${C.border}` }}>
+              <span style={{ ...T.label, fontWeight: 600, color: C.fg, fontFamily: font }}>Konferenschatt</span>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto", padding: 12 }}>
+              {chatMsgs.map((m, i) => (
+                <div key={i} style={{ marginBottom: 12 }}>
+                  <div style={{ ...T.meta, fontWeight: 600, color: C.fg, fontFamily: font }}>{m.from} <span style={{ color: C.fg3, fontFamily: mono, fontWeight: 400 }}>{m.time}</span></div>
+                  <div style={{ ...T.body, color: C.fg2 }}>{m.text}</div>
+                </div>
+              ))}
+              <div ref={chatEndRef} />
+            </div>
+            <div style={{ padding: "10px 12px", borderTop: `1px solid ${C.border}`, display: "flex", gap: 6 }}>
+              <input aria-label="Konferenschatt meddelande" value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === "Enter" && sendChat()} placeholder="Skriv meddelande…" style={{ flex: 1, minWidth: 0, padding: "7px 10px", background: C.s2, border: `1px solid ${C.border}`, borderRadius: 5, color: C.fg, fontFamily: font, fontSize: "0.92rem", outline: "none" }} />
+              <button aria-label="Skicka" onClick={sendChat} style={{ width: 32, height: 32, border: "none", background: C.sage, borderRadius: 5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Send size={13} color={C.bg} /></button>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="conference-controls" style={{ padding: "10px 16px", background: C.s1, borderTop: `1px solid ${C.border}`, display: "flex", justifyContent: "center", gap: 6, flexWrap: "wrap" }}>
         {[
           { label: muted ? "Avtysta" : "Tysta", icon: muted ? MicOff : Mic, action: () => setMuted(!muted), active: !muted },
           { label: "Video", icon: Video, active: true },
           { label: sharing ? "Sluta dela" : "Dela skärm", icon: Monitor, action: () => setSharing(!sharing), active: sharing },
           { label: recording ? "Stoppa" : "Spela in", icon: Disc, action: () => setRecording(!recording), active: recording, color: C.rose },
+          { label: raisedHand ? "Sänk hand" : "Räck upp", icon: Hand, action: () => setRaisedHand(!raisedHand), active: raisedHand, color: C.amber },
+          { label: "Chatt", icon: MessageSquare, action: () => setShowChat(!showChat), active: showChat },
           { label: "Avsluta", icon: PhoneOff, end: true },
         ].map((b, i) => (
-          <button key={i} onClick={b.action} style={{ minWidth: 44, minHeight: 44, padding: "7px 13px", border: "none", borderRadius: 6, cursor: "pointer", background: b.end ? C.rose : b.active && b.color ? `${b.color}33` : b.active ? C.s3 : C.s2, color: b.end ? C.bg : b.color || C.fg2, fontSize: "0.85rem", ...dataText, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, transition: "transform 180ms ease, background-color 180ms ease" }}>
+          <button key={i} onClick={b.action} aria-label={b.label} style={{ minWidth: 44, minHeight: 44, padding: "7px 13px", border: "none", borderRadius: 6, cursor: "pointer", background: b.end ? C.rose : b.active && b.color ? `color-mix(in oklch, ${b.color} 20%, ${C.s2})` : b.active ? C.s3 : C.s2, color: b.end ? C.bg : b.color || C.fg2, fontSize: "0.85rem", ...dataText, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, transition: "transform 180ms ease, background-color 180ms ease" }}>
             <b.icon size={14} /> {b.label}
           </button>
         ))}
@@ -559,6 +901,7 @@ function Conference() {
 
 /* ─── 8. DICOM-VISARE ─── */
 function DICOMViewer() {
+  const { patient } = useContext(AppCtx);
   const [tool, setTool] = useState("pan");
   const [wl, setWl] = useState({ w: 350, l: 40 });
   const studyUid = "1.2.840.113619.2.290.3.2831164354.783.1725609484.467";
@@ -654,12 +997,16 @@ function DICOMViewer() {
 
 /* ─── 9. WHITEBOARD ─── */
 function Whiteboard() {
+  const { patient } = useContext(AppCtx);
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [penColor, setPenColor] = useState(C.sage);
-  const [penSize] = useState(2);
+  const penSize = 2;
   const [activeTool, setActiveTool] = useState("pen");
+  const [textInput, setTextInput] = useState(null);
   const lastPos = useRef(null);
+  const savedImage = useRef(null);
+  const shapeStart = useRef(null);
   const collaborators = [
     { name: "Dr. Bergström", note: "Markerar resektionsmarginal", color: C.sage, x: 34, y: 42 },
     { name: "Dr. Johansson", note: "Justerar osteotomilinjer", color: C.amber, x: 58, y: 66 },
@@ -667,9 +1014,11 @@ function Whiteboard() {
   ];
 
   const getPos = (e) => {
+    if (!canvasRef.current) return { x: 0, y: 0 };
     const rect = canvasRef.current.getBoundingClientRect();
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const touch = e.touches ? e.touches[0] : e.changedTouches ? e.changedTouches[0] : null;
+    const clientX = touch ? touch.clientX : e.clientX;
+    const clientY = touch ? touch.clientY : e.clientY;
     return { x: clientX - rect.left, y: clientY - rect.top };
   };
 
@@ -718,27 +1067,90 @@ function Whiteboard() {
     ctx.fillText("Osteotomisnitten — Dr. Johansson", canvas.width * 0.32, canvas.height * 0.78);
   }, []);
 
+  const commitText = useCallback(() => {
+    if (!textInput || !textInput.value.trim()) { setTextInput(null); return; }
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = penColor;
+    ctx.font = `13px ${mono}`;
+    ctx.fillText(textInput.value, textInput.x, textInput.y);
+    setTextInput(null);
+  }, [textInput, penColor]);
+
   const startDraw = useCallback((e) => {
-    if (activeTool !== "pen") return;
+    if (activeTool === "move") return;
+    const pos = getPos(e);
+    if (activeTool === "text") { setTextInput({ x: pos.x, y: pos.y, value: "" }); return; }
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (activeTool === "pen" || activeTool === "eraser") {
+      setIsDrawing(true);
+      lastPos.current = pos;
+      return;
+    }
+    savedImage.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    shapeStart.current = pos;
     setIsDrawing(true);
-    lastPos.current = getPos(e);
   }, [activeTool]);
 
   const draw = useCallback((e) => {
-    if (!isDrawing || activeTool !== "pen") return;
+    if (!isDrawing) return;
     const pos = getPos(e);
-    const ctx = canvasRef.current.getContext("2d");
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
     ctx.strokeStyle = penColor;
     ctx.lineWidth = penSize;
     ctx.lineCap = "round";
+    if (activeTool === "pen") {
+      ctx.beginPath();
+      ctx.moveTo(lastPos.current.x, lastPos.current.y);
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+      lastPos.current = pos;
+      return;
+    }
+    if (activeTool === "eraser") {
+      ctx.fillStyle = "#111110";
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 10, 0, Math.PI * 2);
+      ctx.fill();
+      lastPos.current = pos;
+      return;
+    }
+    if (!shapeStart.current || !savedImage.current) return;
+    ctx.putImageData(savedImage.current, 0, 0);
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = penSize;
+    ctx.lineCap = "round";
+    const s = shapeStart.current;
     ctx.beginPath();
-    ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(pos.x, pos.y);
-    ctx.stroke();
-    lastPos.current = pos;
-  }, [isDrawing, penColor, penSize, activeTool]);
+    if (activeTool === "line") {
+      ctx.moveTo(s.x, s.y); ctx.lineTo(pos.x, pos.y); ctx.stroke();
+    } else if (activeTool === "rect") {
+      ctx.strokeRect(s.x, s.y, pos.x - s.x, pos.y - s.y);
+    } else if (activeTool === "circle") {
+      const rx = (pos.x - s.x) / 2, ry = (pos.y - s.y) / 2;
+      ctx.ellipse(s.x + rx, s.y + ry, Math.abs(rx), Math.abs(ry), 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    } else if (activeTool === "arrow") {
+      const dx = pos.x - s.x, dy = pos.y - s.y;
+      const angle = Math.atan2(dy, dx), hl = 14;
+      ctx.moveTo(s.x, s.y); ctx.lineTo(pos.x, pos.y); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      ctx.lineTo(pos.x - hl * Math.cos(angle - Math.PI / 6), pos.y - hl * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(pos.x - hl * Math.cos(angle + Math.PI / 6), pos.y - hl * Math.sin(angle + Math.PI / 6));
+      ctx.closePath(); ctx.fillStyle = penColor; ctx.fill();
+    }
+  }, [isDrawing, activeTool, penColor, penSize]);
 
-  const stopDraw = useCallback(() => { setIsDrawing(false); lastPos.current = null; }, []);
+  const stopDraw = useCallback(() => {
+    setIsDrawing(false);
+    lastPos.current = null;
+    shapeStart.current = null;
+    savedImage.current = null;
+  }, []);
 
   const drawTools = [
     { id: "pen", icon: Pencil }, { id: "line", icon: Ruler }, { id: "rect", icon: Square },
@@ -806,6 +1218,17 @@ function Whiteboard() {
               </div>
             </div>
           ))}
+          {textInput && (
+            <input
+              autoFocus
+              aria-label="Textverktyg — skriv och tryck Enter"
+              value={textInput.value}
+              onChange={ev => setTextInput(t => ({ ...t, value: ev.target.value }))}
+              onKeyDown={ev => { if (ev.key === "Enter") commitText(); if (ev.key === "Escape") setTextInput(null); }}
+              onBlur={commitText}
+              style={{ position: "absolute", left: textInput.x, top: textInput.y - 14, zIndex: 10, background: "transparent", border: `1px dashed ${penColor}`, color: penColor, fontFamily: mono, fontSize: 13, outline: "none", padding: "1px 4px", minWidth: 80 }}
+            />
+          )}
           <div style={{ position: "absolute", right: 14, bottom: 14, zIndex: 3, display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 999, background: C.s1, border: `1px solid ${C.border}` }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: penColor }} />
             <span style={{ ...T.meta, color: C.fg2 }}>Live-skiss synkad med konferensen</span>
@@ -818,6 +1241,7 @@ function Whiteboard() {
 
 /* ─── 10. OR-LAYOUT ─── */
 function ORLayout() {
+  const { patient } = useContext(AppCtx);
   const [items, setItems] = useState([
     { id: "table", kind: "table", x: 250, y: 180, w: 170, h: 84, label: "Operationsbord", color: C.fg3 },
     { id: "micro", kind: "microscope", x: 100, y: 120, w: 88, h: 88, label: "Mikroskop", color: C.blue },
@@ -1038,6 +1462,52 @@ function ORLayout() {
   );
 }
 
+/* ─── 11. REVISIONSLOGG ─── */
+function AuditLog() {
+  const [filter, setFilter] = useState("all");
+  const actionTypes = ["all", "Inloggning", "Klinisk fotografi", "EMR-skrivning", "Visade journal"];
+  const colorMap = { "Inloggning": C.sage, "Klinisk fotografi": C.blue, "EMR-skrivning": C.amber, "Visade journal": C.fg3, "Schemaändring": C.mauve, "MDT-publicering": C.rose };
+  const filtered = filter === "all" ? auditLogData : auditLogData.filter(e => e.action === filter);
+  return (
+    <div style={{ padding: "24px 20px", maxWidth: 900, margin: "0 auto" }}>
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ ...T.section, fontWeight: 600, color: C.fg }}>Revisionslogg</div>
+        <div style={{ ...T.meta, color: C.fg3, marginTop: 2 }}>Append-only · Signerad · Skickad till SIEM · Retention 10 år (PDL)</div>
+      </div>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+        {actionTypes.map(t => (
+          <button key={t} onClick={() => setFilter(t)} style={{ padding: "4px 12px", border: `1px solid ${filter === t ? C.sage : C.border}`, borderRadius: 999, background: filter === t ? C.sageBg : "transparent", color: filter === t ? C.sage : C.fg3, ...T.meta, fontFamily: font, cursor: "pointer" }}>
+            {t === "all" ? "Alla händelser" : t}
+          </button>
+        ))}
+      </div>
+      <div style={{ border: `1px solid ${C.border}`, borderRadius: 8, overflow: "hidden" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr 110px 120px 1fr", gap: 0, padding: "8px 12px", background: C.s1, borderBottom: `1px solid ${C.border}` }}>
+          {["Tidsstämpel", "Användare", "Åtgärd", "Patient", "Utfall"].map(h => (
+            <div key={h} style={{ ...T.meta, fontWeight: 600, color: C.fg3, fontFamily: mono }}>{h}</div>
+          ))}
+        </div>
+        {filtered.map((row, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "140px 1fr 110px 120px 1fr", gap: 0, padding: "9px 12px", borderBottom: i < filtered.length - 1 ? `1px solid ${C.border}` : "none", background: i % 2 === 0 ? "transparent" : C.s1 }}>
+            <div style={{ ...T.meta, fontFamily: mono, color: C.fg3 }}>{row.ts}</div>
+            <div>
+              <div style={{ ...T.meta, fontWeight: 500, color: C.fg }}>{row.user}</div>
+              <div style={{ ...T.meta, color: C.fg3, fontFamily: mono }}>{row.userId} · {row.device}</div>
+            </div>
+            <div><span style={{ ...T.meta, fontWeight: 500, color: colorMap[row.action] || C.fg2 }}>{row.action}</span></div>
+            <div style={{ ...T.meta, fontFamily: mono, color: C.fg2 }}>{row.patient}</div>
+            <div style={{ ...T.meta, color: C.fg2 }}>{row.outcome}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ ...T.meta, color: C.fg3, marginTop: 10, display: "flex", alignItems: "center", gap: 6 }}>
+        <Check size={12} color={C.sage} />
+        Logg signerad och verifierad · {filtered.length} poster visade
+      </div>
+    </div>
+  );
+}
+
 /* ─── APP-SKAL ─── */
 const primaryScreens = [
   { id: "space", label: "Ärendeyta", icon: MessageSquare },
@@ -1052,6 +1522,7 @@ const toolScreens = [
   { id: "viewer", label: "DICOM", icon: Microscope },
   { id: "whiteboard", label: "Whiteboard", icon: PenLine },
   { id: "or-layout", label: "OR-layout", icon: LayoutDashboard },
+  { id: "audit", label: "Revisionslogg", icon: FileText },
 ];
 
 const careflowMeta = {
@@ -1115,15 +1586,53 @@ const careflowMeta = {
     accent: C.mauve,
     glow: "none",
   },
+  audit: {
+    phase: "Revisionslogg",
+    cue: "Append-only logg över alla händelser. Signerad och skickad till SIEM.",
+    accent: C.fg3,
+    glow: "none",
+  },
 };
 
+const SESSION_MS = 5 * 60 * 1000;
+const WARN_MS = 60 * 1000;
+
 export default function App() {
+  const [authed, setAuthed] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+  const [patientIdx, setPatientIdx] = useState(0);
   const [screen, setScreen] = useState("space");
   const [showTools, setShowTools] = useState(false);
+  const [showPatients, setShowPatients] = useState(false);
+  const [showNotifs, setShowNotifs] = useState(false);
   const [isShifting, setIsShifting] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [notifications, setNotifications] = useState(initialNotifications);
+  const [lastActivity, setLastActivity] = useState(Date.now());
+  const [sessionMs, setSessionMs] = useState(SESSION_MS);
+  const [sessionWarning, setSessionWarning] = useState(false);
+
+  const currentPatient = patientsDb[patientIdx];
   const isToolScreen = toolScreens.some(s => s.id === screen);
-  const activeMeta = careflowMeta[screen];
+  const activeMeta = careflowMeta[screen] || careflowMeta.space;
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const resetActivity = useCallback(() => {
+    setLastActivity(Date.now());
+    setSessionWarning(false);
+  }, []);
+
+  useEffect(() => {
+    if (!authed) return;
+    const id = setInterval(() => {
+      const remaining = SESSION_MS - (Date.now() - lastActivity);
+      setSessionMs(Math.max(0, remaining));
+      if (remaining <= 0) { setAuthed(false); setSessionWarning(false); }
+      else if (remaining <= WARN_MS) setSessionWarning(true);
+      else setSessionWarning(false);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [authed, lastActivity]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1136,65 +1645,113 @@ export default function App() {
 
   useEffect(() => {
     if (!isShifting) return;
-    const timer = window.setTimeout(() => setIsShifting(false), 460);
-    return () => window.clearTimeout(timer);
+    const t = window.setTimeout(() => setIsShifting(false), 460);
+    return () => window.clearTimeout(t);
   }, [isShifting]);
 
   const commitScreenChange = useCallback((next) => {
-    setScreen(next);
-    setShowTools(false);
-    setIsShifting(true);
+    setScreen(next); setShowTools(false); setShowPatients(false); setShowNotifs(false); setIsShifting(true);
   }, []);
 
   const changeScreen = useCallback((next) => {
-    if (next === screen) {
-      setShowTools(false);
-      return;
-    }
-
+    if (next === screen) { setShowTools(false); return; }
     const swap = () => commitScreenChange(next);
     if (!prefersReducedMotion && typeof document !== "undefined" && "startViewTransition" in document) {
       document.startViewTransition(swap);
-    } else {
-      swap();
-    }
+    } else { swap(); }
   }, [commitScreenChange, prefersReducedMotion, screen]);
 
+  const markRead = useCallback((id) => setNotifications(ns => ns.map(n => n.id === id ? { ...n, read: true } : n)), []);
+
+  const formatSession = (ms) => {
+    const s = Math.floor(ms / 1000), m = Math.floor(s / 60);
+    return `${m}:${String(s % 60).padStart(2, "0")}`;
+  };
+
+  if (!authed) return <LoginScreen onAuth={(u) => { setAuthUser(u); setAuthed(true); setLastActivity(Date.now()); }} />;
+
   return (
-    <div className={`app-shell${isShifting ? " is-shifting" : ""}`} style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative", overflow: "hidden" }}>
-      <div className="app-shell-ambient" style={{ display: "none" }} />
-      <nav className="app-nav" style={{ height: 48, background: `color-mix(in oklch, ${C.bg} 94%, transparent)`, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflow: "visible", position: "relative", zIndex: 1000, backdropFilter: "blur(16px)" }}>
-        <div style={{ fontSize: "1rem", lineHeight: 1.2, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap" }}>
-          <span style={{ color: C.sage }}>●</span> CasePlatform
-        </div>
-        {primaryScreens.map(s => (
-          <button key={s.id} className={`app-nav-button${screen === s.id ? " is-active" : ""}`} onClick={() => changeScreen(s.id)} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: screen === s.id ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: screen === s.id ? C.fg : C.fg3, fontSize: "0.95rem", lineHeight: 1.2, fontFamily: font, fontWeight: screen === s.id ? 600 : 400, whiteSpace: "nowrap", viewTransitionName: screen === s.id ? "active-nav-pill" : "none" }}>
-            <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />{s.label}
+    <AppCtx.Provider value={{ patient: currentPatient, authUser }}>
+      {sessionWarning && (
+        <SessionTimeoutWarning
+          remaining={sessionMs}
+          onExtend={() => { resetActivity(); }}
+          onLogout={() => setAuthed(false)}
+        />
+      )}
+      <div className={`app-shell${isShifting ? " is-shifting" : ""}`} style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: C.bg, fontFamily: font, fontKerning: "normal", position: "relative" }} onClick={resetActivity} onKeyDown={resetActivity}>
+        <nav className="app-nav" style={{ height: 48, background: `color-mix(in oklch, ${C.bg} 94%, transparent)`, borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center", padding: "0 12px", gap: 2, flexShrink: 0, overflow: "auto hidden", position: "relative", zIndex: 1000, backdropFilter: "blur(16px)" }}>
+          <div style={{ fontSize: "1rem", lineHeight: 1.2, fontWeight: 700, color: C.fg, marginRight: 14, whiteSpace: "nowrap", flexShrink: 0 }}>
+            <span style={{ color: C.sage }}>●</span> CasePlatform
+          </div>
+          {primaryScreens.map(s => (
+            <button key={s.id} className={`app-nav-button${screen === s.id ? " is-active" : ""}`} onClick={() => changeScreen(s.id)} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: screen === s.id ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: screen === s.id ? C.fg : C.fg3, fontSize: "0.95rem", lineHeight: 1.2, fontFamily: font, fontWeight: screen === s.id ? 600 : 400, whiteSpace: "nowrap", viewTransitionName: screen === s.id ? "active-nav-pill" : "none" }}>
+              <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 4 }} />{s.label}
+            </button>
+          ))}
+          <div style={{ position: "relative", marginLeft: 4, flexShrink: 0 }}>
+            <button className={`app-nav-button${isToolScreen || showTools ? " is-active" : ""}`} onClick={() => { setShowTools(v => !v); setShowPatients(false); setShowNotifs(false); }} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: isToolScreen || showTools ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: isToolScreen || showTools ? C.fg : C.fg3, fontSize: "0.95rem", lineHeight: 1.2, fontFamily: font, whiteSpace: "nowrap" }}>
+              Samarbeta <ChevronDown size={13} style={{ verticalAlign: "middle" }} />
+            </button>
+            {showTools && (
+              <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 2000, minWidth: 180, boxShadow: C.shadowSm }}>
+                {toolScreens.map(s => (
+                  <button key={s.id} onClick={() => changeScreen(s.id)} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.95rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
+                    <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 6 }} />{s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div style={{ flex: 1 }} />
+          {/* Patient switcher */}
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <button onClick={() => { setShowPatients(v => !v); setShowTools(false); setShowNotifs(false); }} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", border: `1px solid ${C.border}`, borderRadius: 999, background: showPatients ? C.s2 : "transparent", cursor: "pointer", ...T.meta, fontFamily: font, color: C.fg2, whiteSpace: "nowrap" }}>
+              <span style={{ width: 20, height: 20, borderRadius: "50%", background: C.s3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.7rem", fontWeight: 600, color: C.fg, fontFamily: mono }}>{currentPatient.initials}</span>
+              {currentPatient.name.split(" ")[0]} {currentPatient.name.split(" ").at(-1)}
+              <ChevronDown size={11} />
+            </button>
+            {showPatients && (
+              <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 4, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 2000, minWidth: 240, boxShadow: C.shadowSm }}>
+                <div style={{ padding: "8px 12px", borderBottom: `1px solid ${C.border}`, ...T.meta, color: C.fg3, fontFamily: font }}>Byt patient</div>
+                {patientsDb.map((p, i) => (
+                  <button key={p.id} onClick={() => { setPatientIdx(i); setShowPatients(false); }} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "9px 12px", border: "none", textAlign: "left", background: patientIdx === i ? C.s2 : "transparent", cursor: "pointer" }}>
+                    <span style={{ width: 28, height: 28, borderRadius: "50%", background: patientIdx === i ? C.sageBg : C.s3, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.72rem", fontWeight: 600, color: patientIdx === i ? C.sage : C.fg2, fontFamily: mono, flexShrink: 0 }}>{p.initials}</span>
+                    <div>
+                      <div style={{ ...T.label, fontWeight: 500, color: C.fg, fontFamily: font }}>{p.name} · {p.age}å</div>
+                      <div style={{ ...T.meta, color: C.fg3 }}>{p.diagnosis}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Notifications */}
+          <div style={{ position: "relative", flexShrink: 0, marginLeft: 4 }}>
+            <button aria-label={`${unreadCount} olästa notifieringar`} onClick={() => { setShowNotifs(v => !v); setShowTools(false); setShowPatients(false); }} style={{ width: 34, height: 34, border: "none", borderRadius: 999, background: showNotifs ? C.s2 : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+              <Bell size={15} color={C.fg2} />
+              {unreadCount > 0 && <span style={{ position: "absolute", top: 4, right: 4, width: 8, height: 8, borderRadius: "50%", background: C.rose, border: `1.5px solid ${C.bg}` }} />}
+            </button>
+            {showNotifs && <NotificationPanel notifications={notifications} onRead={markRead} onClose={() => setShowNotifs(false)} />}
+          </div>
+          {/* Session timer */}
+          <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 999, background: sessionMs < WARN_MS ? C.amberBg : "transparent", marginLeft: 4, flexShrink: 0 }}>
+            <Clock size={11} color={sessionMs < WARN_MS ? C.amber : C.fg3} />
+            <span style={{ ...T.meta, fontFamily: mono, color: sessionMs < WARN_MS ? C.amber : C.fg3 }}>{formatSession(sessionMs)}</span>
+          </div>
+          {/* Logout */}
+          <button aria-label="Logga ut" onClick={() => setAuthed(false)} style={{ width: 32, height: 32, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, marginLeft: 2, flexShrink: 0 }}>
+            <LogOut size={14} color={C.fg3} />
           </button>
-        ))}
-        <div style={{ position: "relative", marginLeft: 4 }}>
-          <button className={`app-nav-button${isToolScreen || showTools ? " is-active" : ""}`} onClick={() => setShowTools(v => !v)} style={{ padding: "5px 10px", border: "none", borderRadius: 999, cursor: "pointer", background: isToolScreen || showTools ? `color-mix(in oklch, ${activeMeta.accent} 14%, ${C.s3})` : "transparent", color: isToolScreen || showTools ? C.fg : C.fg3, fontSize: "0.95rem", lineHeight: 1.2, fontFamily: font, whiteSpace: "nowrap" }}>
-            Samarbeta <ChevronDown size={13} style={{ verticalAlign: "middle" }} />
-          </button>
-          {showTools && (
-            <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 4, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, overflow: "hidden", zIndex: 2000, minWidth: 160, boxShadow: C.shadowSm }}>
-              {toolScreens.map(s => (
-                <button key={s.id} onClick={() => changeScreen(s.id)} style={{ display: "block", width: "100%", padding: "8px 12px", border: "none", textAlign: "left", background: screen === s.id ? C.s3 : "transparent", color: screen === s.id ? C.fg : C.fg2, fontSize: "0.95rem", lineHeight: 1.25, fontFamily: font, cursor: "pointer" }}>
-                  <s.icon size={13} style={{ verticalAlign: "middle", marginRight: 6 }} />{s.label}
-                </button>
-              ))}
+        </nav>
+        <div className="careflow-ribbon" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, alignItems: "center", padding: "12px 16px 14px", borderBottom: `1px solid ${C.border}`, background: C.s1 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+              <span className="careflow-phase" style={{ ...T.eyebrow, color: activeMeta.accent, fontFamily: font, fontWeight: 600 }}>Fas: {activeMeta.phase}</span>
+              <span className="careflow-cue" style={{ ...T.bodySm, color: C.fg2 }}>{activeMeta.cue}</span>
             </div>
-          )}
-        </div>
-      </nav>
-      <div className="careflow-ribbon" style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, alignItems: "center", padding: "12px 16px 14px", borderBottom: `1px solid ${C.border}`, background: C.s1 }}>
-        <div style={{ minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-            <span className="careflow-phase" style={{ ...T.eyebrow, color: activeMeta.accent, fontFamily: font, fontWeight: 600 }}>Fas: {activeMeta.phase}</span>
-            <span className="careflow-cue" style={{ ...T.bodySm, color: C.fg2 }}>{activeMeta.cue}</span>
           </div>
         </div>
-      </div>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
@@ -1367,20 +1924,22 @@ export default function App() {
           }
         }
       `}</style>
-      <div style={{ flex: 1, overflowY: "auto" }} onClick={() => showTools && setShowTools(false)}>
-        <div key={screen} className="careflow-stage">
-          {screen === "space" && <CaseSpace nav={changeScreen} />}
-          {screen === "timeline" && <Timeline />}
-          {screen === "consult" && <ConsultRequest />}
-          {screen === "calendar" && <CalendarView />}
-          {screen === "mdt" && <MDTSummary />}
-          {screen === "conference" && <Conference />}
-          {screen === "viewer" && <DICOMViewer />}
-          {screen === "whiteboard" && <Whiteboard />}
-          {screen === "or-layout" && <ORLayout />}
-          {screen === "portal" && <PatientPortal />}
+        <div style={{ flex: 1, overflowY: "auto" }} onClick={() => { if (showTools || showPatients || showNotifs) { setShowTools(false); setShowPatients(false); setShowNotifs(false); } }}>
+          <div key={screen} className="careflow-stage">
+            {screen === "space" && <CaseSpace nav={changeScreen} />}
+            {screen === "timeline" && <Timeline />}
+            {screen === "consult" && <ConsultRequest />}
+            {screen === "calendar" && <CalendarView />}
+            {screen === "mdt" && <MDTSummary />}
+            {screen === "conference" && <Conference />}
+            {screen === "viewer" && <DICOMViewer />}
+            {screen === "whiteboard" && <Whiteboard />}
+            {screen === "or-layout" && <ORLayout />}
+            {screen === "portal" && <PatientPortal />}
+            {screen === "audit" && <AuditLog />}
+          </div>
         </div>
       </div>
-    </div>
+    </AppCtx.Provider>
   );
 }
