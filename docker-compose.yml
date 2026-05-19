@@ -1,0 +1,202 @@
+version: "3.9"
+
+# Aether — Swedish Healthcare Coordination Platform
+# Full stack: Matrix homeserver + SITHS RP + HSA bridge + clinical capture service
+#
+# Prerequisites:
+#   1. Copy .env.example → .env and fill in all secrets
+#   2. Place certificates in ./certs/ (see docs/certificates.md)
+#   3. Place Synapse config in ./services/homeserver/data/homeserver.yaml
+#   4. First run: docker compose run --rm synapse generate
+#
+# All services run on an internal Docker network only.
+# Expose via a TLS-terminating reverse proxy (nginx/traefik) on Sjunet.
+
+networks:
+  aether_internal:
+    driver: bridge
+    internal: true    # No direct internet access — Sjunet only
+  proxy_ingress:
+    driver: bridge    # Only the reverse proxy connects here
+
+volumes:
+  synapse_data:
+  postgres_data:
+  capture_data:
+  coturn_data:
+
+services:
+
+  # ── PostgreSQL (Synapse database) ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: synapse
+      POSTGRES_USER: synapse
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aether_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U synapse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Synapse Matrix homeserver ──────────────────────────────────────────────
+  synapse:
+    build: ./services/homeserver
+    image: aether/synapse:latest
+    restart: unless-stopped
+    volumes:
+      - synapse_data:/data
+      - ./certs:/certs:ro
+    environment:
+      SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
+    networks:
+      - aether_internal
+      - proxy_ingress
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8008/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+  # ── SITHS Relying Party ────────────────────────────────────────────────────
+  siths-rp:
+    build: ./services/siths-rp
+    image: aether/siths-rp:latest
+    restart: unless-stopped
+    volumes:
+      - ./certs:/certs:ro
+    environment:
+      NODE_ENV: production
+      PORT: 3401
+      TLS_CERT: /certs/siths-rp.pem
+      TLS_KEY: /certs/siths-rp-key.pem
+      SITHS_CA_BUNDLE: /certs/siths-ca-bundle.pem
+      JWT_PRIVATE_KEY: /certs/jwt-signing-key.pem
+      JWT_PUBLIC_KEY: /certs/jwt-signing-key-pub.pem
+      JWT_TTL_SEC: ${JWT_TTL_SEC:-600}
+      JWT_ISSUER: ${JWT_ISSUER:-urn:aether:siths-rp}
+      API_KEY: ${SITHS_RP_API_KEY}
+      REQUIRE_CLIENT_CERT: ${REQUIRE_CLIENT_CERT:-true}
+    networks:
+      - aether_internal
+      - proxy_ingress    # mobile clients connect via reverse proxy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --no-check-certificate https://localhost:3401/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── HSA Directory Bridge ───────────────────────────────────────────────────
+  hsa-bridge:
+    build: ./services/hsa-bridge
+    image: aether/hsa-bridge:latest
+    restart: unless-stopped
+    volumes:
+      - ./certs:/certs:ro
+    environment:
+      NODE_ENV: production
+      PORT: 3402
+      HSA_LDAP_URL: ${HSA_LDAP_URL:-ldaps://katalog.hsa.sjunet.org:636}
+      HSA_LDAP_BIND_DN: ${HSA_LDAP_BIND_DN:-}
+      HSA_LDAP_BIND_PASSWORD: ${HSA_LDAP_BIND_PASSWORD:-}
+      HSA_LDAP_BASE_DN: ${HSA_LDAP_BASE_DN:-ou=HSA,o=Inera,c=SE}
+      HSA_LDAP_TLS_CA: /certs/inera-ldap-ca.pem
+      MATRIX_DOMAIN: ${MATRIX_DOMAIN}
+      API_KEY: ${HSA_BRIDGE_API_KEY}
+    networks:
+      - aether_internal
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3402/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Clinical Capture Service ───────────────────────────────────────────────
+  capture:
+    build: ./services/capture
+    image: aether/capture:latest
+    restart: unless-stopped
+    volumes:
+      - capture_data:/data
+      - ./certs:/certs:ro
+    environment:
+      NODE_ENV: production
+      PORT: 3400
+      MATRIX_HOMESERVER_URL: http://synapse:8008
+      MATRIX_ACCESS_TOKEN: ${CAPTURE_MATRIX_TOKEN}
+      MATRIX_DEVICE_ID: CAPTURE_SERVICE
+      MATRIX_WATCHED_ROOMS: ${MATRIX_WATCHED_ROOMS:-}
+      FHIR_BASE_URL: ${FHIR_BASE_URL}
+      FHIR_CLIENT_CERT: /certs/fhir-client.pem
+      FHIR_CLIENT_KEY: /certs/fhir-client-key.pem
+      FHIR_CA_CERT: /certs/fhir-ca.pem
+      SITHS_VERIFY_URL: https://siths-rp:3401
+      SITHS_RP_CLIENT_CERT: /certs/siths-rp.pem
+      SITHS_RP_CLIENT_KEY: /certs/siths-rp-key.pem
+      SERVICE_API_KEY: ${CAPTURE_API_KEY}
+      DB_PATH: /data/capture.db
+      AUDIT_LOG_PATH: /data/audit.ndjson
+    networks:
+      - aether_internal
+    depends_on:
+      synapse:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3400/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Coturn TURN server (WebRTC for clinical conference) ────────────────────
+  coturn:
+    image: coturn/coturn:latest
+    restart: unless-stopped
+    volumes:
+      - ./certs:/certs:ro
+      - coturn_data:/var/lib/coturn
+    command: >
+      --listening-port=3478
+      --tls-listening-port=5349
+      --cert=/certs/coturn.pem
+      --pkey=/certs/coturn-key.pem
+      --realm=${MATRIX_DOMAIN}
+      --use-auth-secret
+      --static-auth-secret=${COTURN_AUTH_SECRET}
+      --no-stdout-log
+      --log-file=/var/log/coturn/coturn.log
+      --no-tlsv1
+      --no-tlsv1_1
+      --cipher-list=HIGH
+    ports:
+      - "3478:3478/tcp"
+      - "3478:3478/udp"
+      - "5349:5349/tcp"
+      - "5349:5349/udp"
+      - "49152-65535:49152-65535/udp"  # TURN relay range
+    networks:
+      - aether_internal
+      - proxy_ingress
+
+  # ── Aether Web (Vite build) ────────────────────────────────────────────────
+  web:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - proxy_ingress
+    depends_on:
+      - capture
+      - siths-rp

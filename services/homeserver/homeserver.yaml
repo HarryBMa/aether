@@ -1,0 +1,191 @@
+# Synapse homeserver configuration for Swedish healthcare (Aether platform)
+# Template — replace all <REPLACE_*> values before deployment.
+#
+# Reference: https://matrix-org.github.io/synapse/latest/usage/configuration/config_documentation.html
+
+server_name: "<REPLACE_MATRIX_DOMAIN>"          # e.g. matrix.hospital.se
+public_baseurl: "https://<REPLACE_MATRIX_DOMAIN>/"
+pid_file: /data/homeserver.pid
+web_client_location: https://<REPLACE_AETHER_WEB_URL>/
+
+# ── Listeners ─────────────────────────────────────────────────────────────────
+
+listeners:
+  - port: 8008
+    tls: false
+    type: http
+    x_forwarded: true    # behind nginx/traefik
+    resources:
+      - names: [client, federation]
+        compress: false
+
+# ── Database (PostgreSQL required for production) ─────────────────────────────
+
+database:
+  name: psycopg2
+  args:
+    user: synapse
+    password: "<REPLACE_POSTGRES_PASSWORD>"
+    database: synapse
+    host: postgres
+    port: 5432
+    cp_min: 5
+    cp_max: 10
+
+# ── Media storage ─────────────────────────────────────────────────────────────
+
+media_store_path: /data/media_store
+# Clinical photographs stored via Matrix media — large uploads expected
+max_upload_size: 30M
+# Thumbnails disabled: do not process clinical images automatically
+dynamic_thumbnails: false
+prevent_media_downloads_from: []
+
+# ── Federation ────────────────────────────────────────────────────────────────
+
+# Only federate with other hospitals on Sjunet.
+# Adjust the allowlist for multi-hospital deployment.
+federation_domain_allowlist:
+  - <REPLACE_MATRIX_DOMAIN>
+  # - matrix.region-stockholm.se
+  # - matrix.vgregion.se
+
+# Disable public federation by default
+allow_public_rooms_over_federation: false
+allow_public_rooms_without_auth: false
+
+# ── Registration ──────────────────────────────────────────────────────────────
+
+# No self-registration — all users provisioned via SITHS/HSA-ID SSO
+enable_registration: false
+enable_registration_without_verification: false
+
+# ── Authentication — SITHS / HSA-ID SSO ──────────────────────────────────────
+#
+# Swedish healthcare identity flows:
+#
+# 1. CGI/Carelink SAML2 (most common in hospital production environments)
+#    The hospital's CGI installation acts as a SAML2 IdP.
+#    Attributes: hsa-id, given-name, sn, title, organization
+#
+# 2. Inera OIDC (newer deployments, e-hälsomyndigheten ID-tjänst)
+#    OIDC provider with SITHS card as authenticator.
+#
+# Both options are configured below; uncomment the one relevant to your deployment.
+
+# ── Option A: SAML2 (CGI/Carelink) ───────────────────────────────────────────
+saml2_config:
+  sp_config:
+    metadata:
+      local: ["/data/idp_metadata.xml"]   # Download from CGI/Carelink portal
+    service:
+      sp:
+        endpoints:
+          assertion_consumer_service:
+            - [
+                "https://<REPLACE_MATRIX_DOMAIN>/_matrix/saml2/authn_response",
+                "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+              ]
+        required_attributes: ["hsa-id"]
+        optional_attributes: ["givenName", "sn", "title", "organizationName"]
+
+  user_mapping_provider:
+    module: aether_siths_auth.SITHSSAMLMappingProvider
+    config:
+      # SAML attribute containing the HSA-ID
+      hsa_id_attribute: "hsa-id"
+      display_name_attribute: "displayName"
+      # Matrix localpart format: use HSA-ID lowercased
+      mxid_source_attribute: "hsa-id"
+      mxid_mapping: "dotreplace"
+
+# ── Option B: OIDC (Inera e-hälsomyndigheten) ────────────────────────────────
+# oidc_providers:
+#   - idp_id: inera
+#     idp_name: "SITHS / HSA-ID"
+#     issuer: "https://idp.eid.inera.se/"
+#     client_id: "<REPLACE_OIDC_CLIENT_ID>"
+#     client_secret: "<REPLACE_OIDC_CLIENT_SECRET>"
+#     scopes: ["openid", "profile", "hsa_id"]
+#     user_mapping_provider:
+#       config:
+#         subject_claim: "hsa_id"
+#         display_name_template: "{{ user.given_name }} {{ user.family_name }}"
+#     allow_existing_users: true
+
+# ── Session security ──────────────────────────────────────────────────────────
+
+# Session tokens expire after 8 hours — clinical session discipline
+session_lifetime: 8h
+
+# Require re-authentication to view sensitive events
+# (handled by SITHS step-up in the capture service, not Synapse itself)
+
+# ── E2EE ──────────────────────────────────────────────────────────────────────
+
+# E2EE enabled by default for all rooms.
+# Key backup is managed by clients (Element X).
+encryption_enabled_by_default_for_room_presets:
+  - private_chat
+  - trusted_private_chat
+  - public_chat
+
+# ── Room settings ─────────────────────────────────────────────────────────────
+
+default_room_version: "11"
+
+# Clinical rooms should never be made public
+allow_per_room_profiles: true
+
+# ── Rate limiting — relaxed for clinical workflow ─────────────────────────────
+
+rc_message:
+  per_second: 10
+  burst_count: 50
+
+rc_registration:
+  per_second: 0.1
+  burst_count: 3
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+
+log_config: "/data/log.config"
+
+# ── Modules ───────────────────────────────────────────────────────────────────
+
+modules:
+  - module: aether_siths_auth.SITHSAuthModule
+    config:
+      hsa_bridge_url: "http://hsa-bridge:3402"
+      hsa_bridge_api_key: "<REPLACE_HSA_BRIDGE_API_KEY>"
+
+  - module: aether_clinical_rooms.ClinicalRoomModule
+    config:
+      # Rooms created with this tag will have clinical-capture enabled
+      clinical_room_tag: "io.aether.clinical"
+
+# ── Signing keys ─────────────────────────────────────────────────────────────
+
+signing_key_path: "/data/matrix.hospital.se.signing.key"
+
+trusted_key_servers:
+  []   # No external key servers — internal only on Sjunet
+
+suppress_key_server_warning: true
+
+# ── Retention ─────────────────────────────────────────────────────────────────
+
+# Message history retention — consult PDL/hospital legal before changing
+retention:
+  enabled: false   # Disabled: clinical messages have no expiry by default
+
+# ── Admin ─────────────────────────────────────────────────────────────────────
+
+enable_metrics: true
+report_stats: false    # Never send stats externally
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+
+macaroon_secret_key: "<REPLACE_MACAROON_SECRET>"
+form_secret: "<REPLACE_FORM_SECRET>"
+registration_shared_secret: "<REPLACE_REGISTRATION_SHARED_SECRET>"
