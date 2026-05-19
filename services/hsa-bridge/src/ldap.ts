@@ -1,34 +1,46 @@
-import { Client, type SearchResult } from "ldapts";
+/**
+ * HSA LDAP client for Region Stockholm's EK (Elektronisk Katalog).
+ *
+ * Primary lookup goes through the EK REST API (www.ek.sll.se).
+ * LDAP is the fallback for environments where the REST API is unavailable
+ * or for bulk lookups that benefit from LDAP paging.
+ *
+ * LDAP endpoint: ldaps://ldap.ek.sll.se:636  (within Sjunet)
+ * Base DN:       ou=Region Stockholm,o=HSA-katalogen,c=SE
+ *
+ * Schema reference: HSA-IS 3.11 (Inera), extended with SLL-specific attributes.
+ */
+
+import { Client } from "ldapts";
 import fs from "fs";
 import { config } from "./config.js";
 import { logger } from "./logger.js";
 
-// ── HSA LDAP attribute mappings ───────────────────────────────────────────────
-// HSA uses LDAP object classes: hsaPerson, hsaHealthCareProvider, hsaUnit
-// Key attributes:
-//   hsaIdentity          → HSA-ID (e.g. SE2321000016-ABC1)
-//   cn                   → Display name
-//   givenName / sn       → First / last name
-//   title                → Job title
-//   hsaSpecialityCode    → Medical specialty (SNOMED CT)
-//   o                    → Organization name
-//   hsaHealthCareUnitDN  → Unit DN reference
-//   mail                 → Email
-
 export interface HSAPerson {
   hsaId: string;
-  matrixUserId: string;   // @hsaid:domain (lowercased, colon replaced)
+  matrixUserId: string;
   displayName: string;
   givenName: string;
   surname: string;
+  /** Clinical title: läkare, sjuksköterska, undersköterska, … */
   title: string;
+  /** Human-readable specialty name */
   specialty: string;
   organization: string;
+  /** Clinical unit name (avdelning/mottagning) */
+  unit: string;
+  unitHsaId: string;
+  /** Prescriber code (förskrivarkod) — 7 digits */
+  prescriptionCode: string | null;
+  phone: string | null;
+  mobile: string | null;
   email: string;
+  /** Ward / physical location */
+  ward: string;
   avatarUrl: string | null;
 }
 
-// ── Simple TTL cache ──────────────────────────────────────────────────────────
+// ── TTL cache ─────────────────────────────────────────────────────────────────
 
 interface CacheEntry<T> {
   value: T;
@@ -51,16 +63,30 @@ class Cache<T> {
   set(key: string, value: T): void {
     this.store.set(key, { value, expiresAt: Date.now() + config.CACHE_TTL_MS });
   }
-
-  invalidate(key: string): void {
-    this.store.delete(key);
-  }
 }
 
-const cache = new Cache<HSAPerson[]>();
+const searchCache = new Cache<HSAPerson[]>();
 const personCache = new Cache<HSAPerson | null>();
 
 // ── LDAP client ───────────────────────────────────────────────────────────────
+
+// All attributes fetched from EK LDAP — superset of the national HSA schema
+const EK_ATTRIBUTES = [
+  "hsaIdentity",
+  "cn", "givenName", "sn",
+  "hsaTitle",                  // clinical title (SLL extension)
+  "title",                     // administrative title
+  "hsaSpecialityName",         // readable specialty
+  "hsaSpecialityCode",         // SNOMED CT code
+  "hsaPersonPrescriptionCode", // förskrivarkod
+  "telephoneNumber",
+  "mobile",
+  "mail",
+  "organizationName", "o",
+  "hsaHealthCareUnitName",
+  "hsaHealthCareUnitHsaId",
+  "physicalDeliveryOfficeName",
+];
 
 function buildClient(): Client {
   const tlsOptions = config.HSA_LDAP_TLS_CA
@@ -87,26 +113,33 @@ async function withClient<T>(fn: (client: Client) => Promise<T>): Promise<T> {
   }
 }
 
-// ── Result mapping ────────────────────────────────────────────────────────────
+// ── Attribute helpers ─────────────────────────────────────────────────────────
 
-function attr(result: SearchResult, name: string): string {
-  const val = result.searchEntries[0]?.[name];
-  if (Array.isArray(val)) return String(val[0] ?? "");
-  return val != null ? String(val) : "";
+type LDAPEntry = Record<string, unknown>;
+
+function str(entry: LDAPEntry, ...names: string[]): string {
+  for (const name of names) {
+    const v = entry[name];
+    if (Array.isArray(v) && v.length > 0) return String(v[0]);
+    if (v != null && v !== "") return String(v);
+  }
+  return "";
 }
 
-function mapEntry(entry: SearchResult["searchEntries"][number]): HSAPerson | null {
-  const hsaId = String(entry["hsaIdentity"] ?? entry["cn"] ?? "").trim();
+function mapEntry(entry: LDAPEntry): HSAPerson | null {
+  const hsaId = str(entry, "hsaIdentity").trim();
   if (!hsaId || !/^SE/i.test(hsaId)) return null;
 
-  const cn = String(entry["cn"] ?? "").trim();
-  const given = String(entry["givenName"] ?? "").trim();
-  const sn = String(entry["sn"] ?? "").trim();
-  const displayName = cn || [given, sn].filter(Boolean).join(" ") || hsaId;
+  const given = str(entry, "givenName");
+  const sn = str(entry, "sn");
+  const displayName = str(entry, "cn") || [given, sn].filter(Boolean).join(" ") || hsaId;
 
-  // Matrix user ID: @se2321000016-abc1:domain.se (lowercased HSA-ID)
   const localPart = hsaId.toLowerCase().replace(/[^a-z0-9._\-]/g, "_");
   const matrixUserId = `@${localPart}:${config.MATRIX_DOMAIN}`;
+
+  const prescriptionCode = str(entry, "hsaPersonPrescriptionCode") || null;
+  const phone = str(entry, "telephoneNumber") || null;
+  const mobile = str(entry, "mobile") || null;
 
   return {
     hsaId: hsaId.toUpperCase(),
@@ -114,97 +147,111 @@ function mapEntry(entry: SearchResult["searchEntries"][number]): HSAPerson | nul
     displayName,
     givenName: given,
     surname: sn,
-    title: String(entry["title"] ?? "").trim(),
-    specialty: String(entry["hsaSpecialityCode"] ?? "").trim(),
-    organization: String(entry["o"] ?? entry["organizationName"] ?? "").trim(),
-    email: String(entry["mail"] ?? "").trim(),
+    title: str(entry, "hsaTitle", "title"),
+    specialty: str(entry, "hsaSpecialityName", "hsaSpecialityCode"),
+    organization: str(entry, "organizationName", "o"),
+    unit: str(entry, "hsaHealthCareUnitName"),
+    unitHsaId: str(entry, "hsaHealthCareUnitHsaId"),
+    prescriptionCode,
+    phone,
+    mobile,
+    email: str(entry, "mail"),
+    ward: str(entry, "physicalDeliveryOfficeName"),
     avatarUrl: null,
   };
 }
 
-// ── Public API ────────────────────────────────────────────────────────────────
+// ── LDAP search functions (used as fallback when EK REST API is unavailable) ──
 
-/**
- * Search practitioners by name or HSA-ID.
- * Returns up to 25 results.
- */
-export async function searchPractitioners(query: string): Promise<HSAPerson[]> {
-  const cacheKey = `search:${query.toLowerCase()}`;
-  const cached = cache.get(cacheKey);
-  if (cached) return cached;
-
-  const sanitized = query.replace(/[*()\\]/g, ""); // prevent LDAP injection
+export async function ldapSearchPractitioners(query: string): Promise<HSAPerson[]> {
+  const sanitized = query.replace(/[*()\\]/g, "");
   if (sanitized.length < 2) return [];
 
-  const filter = `(|(cn=*${sanitized}*)(givenName=*${sanitized}*)(sn=*${sanitized}*)(hsaIdentity=*${sanitized}*))`;
+  // Search across name fields and HSA-ID
+  const filter = `(&(objectClass=hsaPerson)(|(cn=*${sanitized}*)(givenName=*${sanitized}*)(sn=*${sanitized}*)(hsaIdentity=${sanitized}*)))`;
 
   try {
     const results = await withClient(async (client) => {
       const { searchEntries } = await client.search(config.HSA_LDAP_BASE_DN, {
         filter,
-        attributes: [
-          "hsaIdentity", "cn", "givenName", "sn",
-          "title", "hsaSpecialityCode", "o", "mail",
-        ],
+        attributes: EK_ATTRIBUTES,
         sizeLimit: 25,
       });
       return searchEntries;
     });
 
-    const persons = results
-      .map((e) => mapEntry(e))
+    return results
+      .map((e) => mapEntry(e as LDAPEntry))
       .filter((p): p is HSAPerson => p !== null);
-
-    cache.set(cacheKey, persons);
-    return persons;
   } catch (err) {
     logger.error("LDAP search failed", { query: sanitized, err });
     return [];
   }
 }
 
-/**
- * Look up a single practitioner by their HSA-ID.
- */
-export async function getPractitioner(hsaId: string): Promise<HSAPerson | null> {
-  const cacheKey = `id:${hsaId.toUpperCase()}`;
-  const cached = personCache.get(cacheKey);
-  if (cached !== null) return cached;
-
+export async function ldapGetPractitioner(hsaId: string): Promise<HSAPerson | null> {
   const sanitized = hsaId.replace(/[^A-Z0-9\-]/gi, "");
 
   try {
     const result = await withClient(async (client) => {
       const { searchEntries } = await client.search(config.HSA_LDAP_BASE_DN, {
-        filter: `(hsaIdentity=${sanitized})`,
-        attributes: [
-          "hsaIdentity", "cn", "givenName", "sn",
-          "title", "hsaSpecialityCode", "o", "mail",
-        ],
+        filter: `(&(objectClass=hsaPerson)(hsaIdentity=${sanitized}))`,
+        attributes: EK_ATTRIBUTES,
         sizeLimit: 1,
       });
       return searchEntries;
     });
 
-    const person = result[0] ? mapEntry(result[0]) : null;
-    personCache.set(cacheKey, person);
-    return person;
+    return result[0] ? mapEntry(result[0] as LDAPEntry) : null;
   } catch (err) {
     logger.error("LDAP lookup failed", { hsaId: sanitized, err });
     return null;
   }
 }
 
-/**
- * Resolve a Matrix user ID (@localpart:domain) back to an HSA-ID and look up the person.
- */
+// ── Public API — EK REST primary, LDAP fallback ───────────────────────────────
+
+import { ekSearch, ekGetPerson } from "./ek.js";
+
+export async function searchPractitioners(query: string): Promise<HSAPerson[]> {
+  const cacheKey = `search:${query.toLowerCase()}`;
+  const cached = searchCache.get(cacheKey);
+  if (cached) return cached;
+
+  // EK REST API first
+  let results = await ekSearch(query);
+
+  // LDAP fallback if EK returned nothing
+  if (results.length === 0) {
+    results = await ldapSearchPractitioners(query);
+  }
+
+  searchCache.set(cacheKey, results);
+  return results;
+}
+
+export async function getPractitioner(hsaId: string): Promise<HSAPerson | null> {
+  const cacheKey = `id:${hsaId.toUpperCase()}`;
+  const cached = personCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
+  // EK REST API first
+  let person = await ekGetPerson(hsaId);
+
+  // LDAP fallback
+  if (!person) {
+    person = await ldapGetPractitioner(hsaId);
+  }
+
+  personCache.set(cacheKey, person);
+  return person;
+}
+
 export async function getPractitionerByMatrixId(
   matrixUserId: string
 ): Promise<HSAPerson | null> {
-  // Strip @...:<domain> → localpart → reconstruct HSA-ID
   const match = matrixUserId.match(/^@([^:]+):/);
   if (!match?.[1]) return null;
-  // Reverse the mapping: se2321000016-abc1 → SE2321000016-ABC1
   const hsaId = match[1].toUpperCase().replace(/_/g, "-");
   return getPractitioner(hsaId);
 }

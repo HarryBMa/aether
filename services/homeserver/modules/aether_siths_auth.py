@@ -174,7 +174,10 @@ class SITHSAuthModule:
         pass
 
     def _fetch_hsa_profile(self, hsa_id: str) -> Optional[Dict[str, Any]]:
-        """Synchronous HSA bridge lookup (called during login, outside async context)."""
+        """
+        Fetch practitioner profile from the HSA bridge, which queries
+        EK (www.ek.sll.se) first, then falls back to LDAP.
+        """
         url = f"{self._hsa_bridge_url}/hsa/person/{hsa_id}"
         req = urllib.request.Request(
             url,
@@ -182,7 +185,15 @@ class SITHSAuthModule:
         )
         try:
             with urllib.request.urlopen(req, timeout=3) as resp:
-                return json.loads(resp.read())
+                profile = json.loads(resp.read())
+                # Map EK fields to Synapse display name
+                if profile.get("displayName"):
+                    profile["display_name"] = profile["displayName"]
+                if profile.get("title"):
+                    profile["display_name"] = (
+                        f"{profile.get('displayName', hsa_id)}, {profile['title']}"
+                    )
+                return profile
         except urllib.error.HTTPError as e:
             if e.code == 404:
                 return None

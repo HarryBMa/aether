@@ -107,11 +107,18 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3402
-      HSA_LDAP_URL: ${HSA_LDAP_URL:-ldaps://katalog.hsa.sjunet.org:636}
+      # EK REST API — Region Stockholm (primary)
+      EK_BASE_URL: ${EK_BASE_URL:-https://www.ek.sll.se}
+      EK_API_KEY: ${EK_API_KEY:-}
+      EK_CLIENT_CERT: /certs/sjunet-client.pem
+      EK_CLIENT_KEY: /certs/sjunet-client-key.pem
+      EK_CA_CERT: /certs/siths-ca-bundle.pem
+      # HSA LDAP — Region Stockholm (fallback)
+      HSA_LDAP_URL: ${HSA_LDAP_URL:-ldaps://ldap.ek.sll.se:636}
       HSA_LDAP_BIND_DN: ${HSA_LDAP_BIND_DN:-}
       HSA_LDAP_BIND_PASSWORD: ${HSA_LDAP_BIND_PASSWORD:-}
-      HSA_LDAP_BASE_DN: ${HSA_LDAP_BASE_DN:-ou=HSA,o=Inera,c=SE}
-      HSA_LDAP_TLS_CA: /certs/inera-ldap-ca.pem
+      HSA_LDAP_BASE_DN: ${HSA_LDAP_BASE_DN:-ou=Region Stockholm,o=HSA-katalogen,c=SE}
+      HSA_LDAP_TLS_CA: /certs/siths-ca-bundle.pem
       MATRIX_DOMAIN: ${MATRIX_DOMAIN}
       API_KEY: ${HSA_BRIDGE_API_KEY}
     networks:

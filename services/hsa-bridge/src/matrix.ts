@@ -76,7 +76,7 @@ matrixRouter.post("/_matrix/identity/v2/bulk_lookup", async (req, res) => {
 
 // ── Aether-specific extension endpoints ───────────────────────────────────────
 
-// GET /hsa/search?q=...  — search practitioners by name
+// GET /hsa/search?q=...  — search practitioners by name or HSA-ID
 matrixRouter.get("/hsa/search", async (req, res) => {
   const q = req.query["q"];
   if (typeof q !== "string" || q.length < 2) {
@@ -94,6 +94,10 @@ matrixRouter.get("/hsa/search", async (req, res) => {
       title: p.title,
       specialty: p.specialty,
       organization: p.organization,
+      unit: p.unit,
+      unit_hsa_id: p.unitHsaId,
+      phone: p.phone,
+      ward: p.ward,
     })),
   });
 });
